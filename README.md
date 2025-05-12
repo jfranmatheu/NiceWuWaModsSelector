@@ -1,5 +1,11 @@
 # NiceWuWaModsSelector
 
+
+
+https://github.com/user-attachments/assets/c0b64ac1-ae5a-4a56-9d57-fd32ffc949b8
+
+
+
 A modern, sleek, and user-friendly desktop application for managing mods for the game Wuthering Waves.
 
 ## Features
