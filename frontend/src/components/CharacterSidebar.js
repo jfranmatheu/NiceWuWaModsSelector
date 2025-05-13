@@ -220,288 +220,286 @@ export default function CharacterSidebar({ onCharacterChange, selectedCharacter 
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 h-screen flex flex-col flex-none w-64">
+    <div className="bg-white dark:bg-gray-800 h-screen flex flex-col flex-none w-[15rem]">
+      {/* Filters Header - Fixed */}
+      <div className="flex-none bg-white dark:bg-gray-800 py-2 z-10 flex justify-between items-center px-2 border-l border-gray-200 dark:border-gray-700">
+        {/* Left side - Dropdowns */}
+        <div className="flex gap-2">
+          {/* Rarity Dropdown */}
+          <div className="relative">
+            <button
+              onClick={() => {
+                setShowRarityDropdown(!showRarityDropdown);
+                setShowElementDropdown(false);
+                setShowWeaponDropdown(false);
+              }}
+              className="w-8 h-8 bg-gray-100 dark:bg-gray-700 rounded flex items-center justify-center"
+            >
+              <div className="relative w-5 h-5">
+                <FaStar className={`w-full h-full ${rarityFilter === "All" ? "text-gray-200" : rarityFilter === "5" ? "text-yellow-500" : "text-purple-400"}`} />
+                <span className="absolute inset-0 flex items-center justify-center text-xs font-bold text-black">
+                  {rarityFilter === "All" ? "" : rarityFilter}
+                </span>
+              </div>
+            </button>
+            {showRarityDropdown && (
+              <div className="absolute top-full left-0 mt-1 bg-white dark:bg-gray-800 rounded shadow-lg border border-gray-200 dark:border-gray-700">
+                <button
+                  onClick={() => {
+                    setRarityFilter("All");
+                    setShowRarityDropdown(false);
+                  }}
+                  className="w-full px-3 py-2 flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-700"
+                >
+                  All
+                </button>
+                <button
+                  onClick={() => {
+                    setRarityFilter("5");
+                    setShowRarityDropdown(false);
+                  }}
+                  className="w-full px-3 py-2 flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-700"
+                >
+                  5★
+                </button>
+                <button
+                  onClick={() => {
+                    setRarityFilter("4");
+                    setShowRarityDropdown(false);
+                  }}
+                  className="w-full px-3 py-2 flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-700"
+                >
+                  4★
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Element Dropdown */}
+          <div className="relative">
+            <button
+              onClick={() => {
+                setShowElementDropdown(!showElementDropdown);
+                setShowWeaponDropdown(false);
+              }}
+              className="w-8 h-8 bg-gray-100 dark:bg-gray-700 rounded flex items-center justify-center"
+            >
+              {renderIcon('element', elementFilter, 'header')}
+            </button>
+            {showElementDropdown && (
+              <div className="absolute top-full left-0 mt-1 bg-white dark:bg-gray-800 rounded shadow-lg border border-gray-200 dark:border-gray-700">
+                {Object.entries(elementMapIcons).map(([elementName, elementIcon]) => (
+                  <button
+                    key={elementName}
+                    onClick={() => {
+                      setElementFilter(elementName);
+                      setShowElementDropdown(false);
+                    }}
+                    className={`w-full px-3 py-2 flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-700 ${elementName === "All" ? "border-b border-gray-200 dark:border-gray-700" : ""}`}
+                  >
+                    {elementName === "All" ? (
+                      <>
+                        <GiOrbital className='w-5 h-5' />
+                        <span>All</span>
+                      </>
+                    ) : (
+                      <>
+                        <div className="w-5 h-5 relative">
+                          <Image
+                            src={elementIcon}
+                            alt={elementName}
+                            fill
+                            className="object-contain"
+                          />
+                        </div>
+                        <span>{elementName}</span>
+                      </>
+                    )}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Weapon Dropdown */}
+          <div className="relative">
+            <button
+              onClick={() => {
+                setShowWeaponDropdown(!showWeaponDropdown);
+                setShowElementDropdown(false);
+              }}
+              className="w-8 h-8 bg-gray-100 dark:bg-gray-700 rounded flex items-center justify-center"
+            >
+              {renderIcon('weapon', weaponFilter, 'header')}
+            </button>
+            {showWeaponDropdown && (
+              <div className="absolute top-full left-0 mt-1 bg-white dark:bg-gray-800 rounded shadow-lg border border-gray-200 dark:border-gray-700">
+                {Object.entries(weaponMapIcons).map(([weaponName, weaponIcon]) => (
+                  <button
+                    key={weaponName}
+                    onClick={() => {
+                      setWeaponFilter(weaponName);
+                      setShowWeaponDropdown(false);
+                    }}
+                    className={`w-full px-3 py-2 flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-700 ${weaponName === "All" ? "border-b border-gray-200 dark:border-gray-700" : ""}`}
+                  >
+                    {weaponName === "All" ? (
+                      <>
+                        <GiSwordsEmblem className='w-5 h-5' />
+                        <span>All</span>
+                      </>
+                    ) : (
+                      <>
+                        <div className="w-5 h-5 relative">
+                          <Image
+                            src={weaponIcon}
+                            alt={weaponName}
+                            fill
+                            className="object-contain"
+                          />
+                        </div>
+                        <span>{weaponName}</span>
+                      </>
+                    )}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+          <button
+            onClick={() => setShowFavorites(!showFavorites)}
+            className="w-8 h-8 rounded flex items-center justify-center marker:bg-gray-100 dark:bg-gray-700"
+          >
+            <IoHeartSharp className={`w-full h-full p-1 ${
+              showFavorites ? 'text-red-500' : 'text-gray-200'
+            }`} />
+          </button>
+        </div>
+
+        {/* Right side - Buttons */}
+        <div className="flex gap-2 border-l pl-2 border-gray-200 dark:border-gray-700">
+          <button
+            onClick={cycleViewMode}
+            className="w-8 h-8 rounded flex items-center justify-center text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+          >
+            {getViewModeIcon()}
+          </button>
+        </div>
+      </div>
+
+      {/* Character Grid - Scrollable */}
       <div className="flex-1 overflow-y-auto border-l border-gray-200 dark:border-gray-700">
         {loading ? (
           <div className="flex justify-center items-center h-full">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 dark:border-white"></div>
           </div>
         ) : (
-          <>
-            {/* Filters Header */}
-            <div className="sticky top-0 left-0 right-0 w-full bg-white dark:bg-gray-800 py-2 z-10 flex justify-between items-center px-2">
-              {/* Left side - Dropdowns */}
-              <div className="flex gap-2">
-                {/* Rarity Dropdown */}
-                <div className="relative">
-                  <button
-                    onClick={() => {
-                      setShowRarityDropdown(!showRarityDropdown);
-                      setShowElementDropdown(false);
-                      setShowWeaponDropdown(false);
-                    }}
-                    className="w-8 h-8 bg-gray-100 dark:bg-gray-700 rounded flex items-center justify-center"
-                  >
-                    <div className="relative w-5 h-5">
-                      <FaStar className={`w-full h-full ${rarityFilter === "All" ? "text-gray-200" : rarityFilter === "5" ? "text-yellow-500" : "text-purple-400"}`} />
-                      <span className="absolute inset-0 flex items-center justify-center text-xs font-bold text-black">
-                        {rarityFilter === "All" ? "" : rarityFilter}
-                      </span>
-                    </div>
-                  </button>
-                  {showRarityDropdown && (
-                    <div className="absolute top-full left-0 mt-1 bg-white dark:bg-gray-800 rounded shadow-lg border border-gray-200 dark:border-gray-700">
-                      <button
-                        onClick={() => {
-                          setRarityFilter("All");
-                          setShowRarityDropdown(false);
-                        }}
-                        className="w-full px-3 py-2 flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-700"
-                      >
-                        All
-                      </button>
-                      <button
-                        onClick={() => {
-                          setRarityFilter("5");
-                          setShowRarityDropdown(false);
-                        }}
-                        className="w-full px-3 py-2 flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-700"
-                      >
-                        5★
-                      </button>
-                      <button
-                        onClick={() => {
-                          setRarityFilter("4");
-                          setShowRarityDropdown(false);
-                        }}
-                        className="w-full px-3 py-2 flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-700"
-                      >
-                        4★
-                      </button>
-                    </div>
-                  )}
-                </div>
-
-                {/* Element Dropdown */}
-                <div className="relative">
-                  <button
-                    onClick={() => {
-                      setShowElementDropdown(!showElementDropdown);
-                      setShowWeaponDropdown(false);
-                    }}
-                    className="w-8 h-8 bg-gray-100 dark:bg-gray-700 rounded flex items-center justify-center"
-                  >
-                    {renderIcon('element', elementFilter, 'header')}
-                  </button>
-                  {showElementDropdown && (
-                    <div className="absolute top-full left-0 mt-1 bg-white dark:bg-gray-800 rounded shadow-lg border border-gray-200 dark:border-gray-700">
-                      {Object.entries(elementMapIcons).map(([elementName, elementIcon]) => (
-                        <button
-                          key={elementName}
-                          onClick={() => {
-                            setElementFilter(elementName);
-                            setShowElementDropdown(false);
-                          }}
-                          className={`w-full px-3 py-2 flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-700 ${elementName === "All" ? "border-b border-gray-200 dark:border-gray-700" : ""}`}
-                        >
-                          {elementName === "All" ? (
-                            <>
-                              <GiOrbital className='w-5 h-5' />
-                              <span>All</span>
-                            </>
-                          ) : (
-                            <>
-                              <div className="w-5 h-5 relative">
-                                <Image
-                                  src={elementIcon}
-                                  alt={elementName}
-                                  fill
-                                  className="object-contain"
-                                />
-                              </div>
-                              <span>{elementName}</span>
-                            </>
-                          )}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                {/* Weapon Dropdown */}
-                <div className="relative">
-                  <button
-                    onClick={() => {
-                      setShowWeaponDropdown(!showWeaponDropdown);
-                      setShowElementDropdown(false);
-                    }}
-                    className="w-8 h-8 bg-gray-100 dark:bg-gray-700 rounded flex items-center justify-center"
-                  >
-                    {renderIcon('weapon', weaponFilter, 'header')}
-                  </button>
-                  {showWeaponDropdown && (
-                    <div className="absolute top-full left-0 mt-1 bg-white dark:bg-gray-800 rounded shadow-lg border border-gray-200 dark:border-gray-700">
-                      {Object.entries(weaponMapIcons).map(([weaponName, weaponIcon]) => (
-                        <button
-                          key={weaponName}
-                          onClick={() => {
-                            setWeaponFilter(weaponName);
-                            setShowWeaponDropdown(false);
-                          }}
-                          className={`w-full px-3 py-2 flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-700 ${weaponName === "All" ? "border-b border-gray-200 dark:border-gray-700" : ""}`}
-                        >
-                          {weaponName === "All" ? (
-                            <>
-                              <GiSwordsEmblem className='w-5 h-5' />
-                              <span>All</span>
-                            </>
-                          ) : (
-                            <>
-                              <div className="w-5 h-5 relative">
-                                <Image
-                                  src={weaponIcon}
-                                  alt={weaponName}
-                                  fill
-                                  className="object-contain"
-                                />
-                              </div>
-                              <span>{weaponName}</span>
-                            </>
-                          )}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-                <button
-                  onClick={() => setShowFavorites(!showFavorites)}
-                  className="w-8 h-8 rounded flex items-center justify-center marker:bg-gray-100 dark:bg-gray-700"
-                >
-                  <IoHeartSharp className={`w-full h-full p-1 ${
-                    showFavorites ? 'text-red-500' : 'text-gray-200'
-                  }`} />
-                </button>
-              </div>
-
-              {/* Right side - Buttons */}
-              <div className="flex gap-2 border-l pl-2 border-gray-200 dark:border-gray-700">
-                <button
-                  onClick={cycleViewMode}
-                  className="w-8 h-8 rounded flex items-center justify-center text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                >
-                  {getViewModeIcon()}
-                </button>
-              </div>
-            </div>
-
-            {/* Character Grid */}
-            <div className={`px-4 pb-4 grid ${
-              viewMode === 0 ? 'grid-cols-1 gap-4' : 
-              viewMode === 1 ? 'grid-cols-1 gap-1' : 
-              'grid-cols-2 gap-4'
-            } mt-4`}>
-              {filteredCharacters.map((character) => (
-                <button
-                  key={character.id}
-                  onClick={() => onCharacterChange(character)}
-                  className={`relative flex flex-col items-center rounded-lg overflow-hidden transition-colors ${
-                    selectedCharacter?.name === character.name
-                      ? 'ring-2 ring-blue-500'
-                      : 'hover:bg-gray-100 dark:hover:bg-gray-700'
-                  }`}
-                >
-                  {viewMode === 0 ? (
-                    // Card view
-                    <div className="w-full">
+          <div className={`px-2 pb-4 grid ${
+            viewMode === 0 ? 'grid-cols-1 gap-4' : 
+            viewMode === 1 ? 'grid-cols-1 gap-1' : 
+            'grid-cols-2 gap-4'
+          }`}>
+            {filteredCharacters.map((character) => (
+              <button
+                key={character.id}
+                onClick={() => onCharacterChange(character)}
+                className={`relative flex flex-col items-center rounded-lg overflow-hidden transition-colors ${
+                  selectedCharacter?.name === character.name
+                    ? 'ring-2 ring-blue-500'
+                    : 'hover:bg-gray-100 dark:hover:bg-gray-700'
+                }`}
+              >
+                {viewMode === 0 ? (
+                  // Card view
+                  <div className="w-full">
+                    <div 
+                      className="relative w-full aspect-[3/4]"
+                      style={{
+                        backgroundColor: character.rarity === "5" ? "#ccbf48" : "#9b68d4"
+                      }}
+                    >
+                      <Image
+                        src={character.cardImage}
+                        alt={character.name}
+                        fill
+                        className="object-cover"
+                      />
+                      <div className="absolute top-1 left-1 right-1 flex justify-between">
+                        {renderIcon('element', character.element, 'card')}
+                        {renderIcon('weapon', character.weapon, 'card')}
+                      </div>
                       <div 
-                        className="relative w-full aspect-[3/4]"
+                        className="absolute bottom-0 left-0 right-0 p-2 text-center text-white backdrop-blur-[1px]"
                         style={{
-                          backgroundColor: character.rarity === "5" ? "#ccbf48" : "#9b68d4"
+                          background: character.rarity === "5" 
+                            ? "linear-gradient(0deg, rgba(204, 191, 72, 0.9), rgba(171, 144, 89, 0))"
+                            : "linear-gradient(0deg, rgba(155, 104, 212, 0.9), rgba(107, 46, 150, 0))"
                         }}
                       >
-                        <Image
-                          src={character.cardImage}
-                          alt={character.name}
-                          fill
-                          className="object-cover"
-                        />
-                        <div className="absolute top-1 left-1 right-1 flex justify-between">
-                          {renderIcon('element', character.element, 'card')}
-                          {renderIcon('weapon', character.weapon, 'card')}
-                        </div>
-                        <div 
-                          className="absolute bottom-0 left-0 right-0 p-2 text-center text-white backdrop-blur-[1px]"
-                          style={{
-                            background: character.rarity === "5" 
-                              ? "linear-gradient(0deg, rgba(204, 191, 72, 0.9), rgba(171, 144, 89, 0))"
-                              : "linear-gradient(0deg, rgba(155, 104, 212, 0.9), rgba(107, 46, 150, 0))"
-                          }}
-                        >
-                          <p className="text-lg font-mono font-bold text-white drop-shadow">{character.name}</p>
-                        </div>
+                        <p className="text-lg font-mono font-bold text-white drop-shadow">{character.name}</p>
                       </div>
-                      
                     </div>
-                  ) : viewMode === 1 ? (
-                    // List view
-                    <div className="w-full flex items-center gap-4 p-2">
+                    
+                  </div>
+                ) : viewMode === 1 ? (
+                  // List view
+                  <div className="w-full flex items-center gap-4 p-2 pr-0">
+                    <div 
+                      className="relative w-20 h-20 rounded-lg overflow-hidden flex-shrink-0"
+                      style={{
+                        backgroundColor: character.rarity === "5" ? "#ccbf48" : "#9b68d4"
+                      }}
+                    >
+                      <Image
+                        src={character.icon}
+                        alt={character.name}
+                        fill
+                        className="object-cover"
+                      />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-lg text-left font-medium truncate mb-[4px]">{character.name}</div>
+                      <div className="flex items-center gap-2 mt-1">
+                        {renderIcon('element', character.element, 'list')}
+                        {renderIcon('weapon', character.weapon, 'list')}
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  // Grid view
+                  <div className="w-full aspect-square">
+                    <div 
+                      className="relative w-full h-full rounded-lg overflow-hidden"
+                      style={{
+                        backgroundColor: character.rarity === "5" ? "#ccbf48" : "#9b68d4"
+                      }}
+                    >
+                      <Image
+                        src={character.icon}
+                        alt={character.name}
+                        fill
+                        className="object-cover"
+                      />
+                      <div className="absolute top-1 left-1 right-1 flex justify-between">
+                        {renderIcon('element', character.element, 'grid')}
+                        {renderIcon('weapon', character.weapon, 'grid')}
+                      </div>
                       <div 
-                        className="relative w-20 h-20 rounded-lg overflow-hidden flex-shrink-0"
+                        className="absolute bottom-0 left-0 right-0 p-1 text-center"
                         style={{
-                          backgroundColor: character.rarity === "5" ? "#ccbf48" : "#9b68d4"
+                          background: character.rarity === "5" 
+                            ? "linear-gradient(0deg, rgba(80, 60, 20, 0.9), rgba(171, 144, 89, 0.1))"
+                            : "linear-gradient(0deg, rgba(60, 20, 80, 0.9), rgba(107, 46, 150, 0.1))"
                         }}
                       >
-                        <Image
-                          src={character.icon}
-                          alt={character.name}
-                          fill
-                          className="object-cover"
-                        />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="text-lg text-left font-medium truncate mb-[4px]">{character.name}</div>
-                        <div className="flex items-center gap-2 mt-1">
-                          {renderIcon('element', character.element, 'list')}
-                          {renderIcon('weapon', character.weapon, 'list')}
-                        </div>
+                        <p className="text-white text-sm font-mono font-bold drop-shadow">{character.name}</p>
                       </div>
                     </div>
-                  ) : (
-                    // Grid view
-                    <div className="w-full aspect-square">
-                      <div 
-                        className="relative w-full h-full rounded-lg overflow-hidden"
-                        style={{
-                          backgroundColor: character.rarity === "5" ? "#ccbf48" : "#9b68d4"
-                        }}
-                      >
-                        <Image
-                          src={character.icon}
-                          alt={character.name}
-                          fill
-                          className="object-cover"
-                        />
-                        <div className="absolute top-1 left-1 right-1 flex justify-between">
-                          {renderIcon('element', character.element, 'grid')}
-                          {renderIcon('weapon', character.weapon, 'grid')}
-                        </div>
-                        <div 
-                          className="absolute bottom-0 left-0 right-0 p-1 text-center"
-                          style={{
-                            background: character.rarity === "5" 
-                              ? "linear-gradient(0deg, rgba(80, 60, 20, 0.9), rgba(171, 144, 89, 0.1))"
-                              : "linear-gradient(0deg, rgba(60, 20, 80, 0.9), rgba(107, 46, 150, 0.1))"
-                          }}
-                        >
-                          <p className="text-white text-sm font-mono font-bold drop-shadow">{character.name}</p>
-                        </div>
-                      </div>
-                    </div>
-                  )}
+                  </div>
+                )}
               </button>
             ))}
           </div>
-          </>
         )}
       </div>
     </div>
