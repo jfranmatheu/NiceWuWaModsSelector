@@ -8,12 +8,11 @@ import ModGridHeader from './ModGridHeader';
 import useModStore from '@/store/modStore';
 import useSettingsStore from '@/store/settingsStore';
 
-export default function ModGrid({ category, character }) {
+export default function ModGrid({ category, character, context }) {
   const { mods, loadMods, isLoading, error } = useModStore();
   const { settings } = useSettingsStore();
   const [selectedModId, setSelectedModId] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [context, setContext] = useState('installed');
   const [gamebananaMods, setGamebananaMods] = useState([]);
   const [selectedGamebananaMod, setSelectedGamebananaMod] = useState(null);
   const [isLoadingGamebanana, setIsLoadingGamebanana] = useState(false);
@@ -28,6 +27,13 @@ export default function ModGrid({ category, character }) {
       console.log("no category or character found", { category, character });
     }
   }, [category, character, loadMods, context]);
+
+  // Reset states when context changes
+  useEffect(() => {
+    setSearchQuery('');
+    setSelectedModId(null);
+    setSelectedGamebananaMod(null);
+  }, [context]);
 
   const loadGamebananaMods = async (categoryId) => {
     setIsLoadingGamebanana(true);
@@ -58,13 +64,6 @@ export default function ModGrid({ category, character }) {
 
   const handleSearch = (query) => {
     setSearchQuery(query.toLowerCase());
-  };
-
-  const handleContextChange = (newContext) => {
-    setContext(newContext);
-    setSearchQuery('');
-    setSelectedModId(null);
-    setSelectedGamebananaMod(null);
   };
 
   // Filter mods based on search query
@@ -229,8 +228,6 @@ export default function ModGrid({ category, character }) {
       <ModGridHeader 
         onSearch={handleSearch} 
         selectedCharacter={character}
-        onContextChange={handleContextChange}
-        context={context}
       />
       {renderContent()}
       {selectedGamebananaMod && (

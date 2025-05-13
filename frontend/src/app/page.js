@@ -6,11 +6,17 @@ import CharacterSidebar from '@/components/CharacterSidebar';
 import ModGrid from '@/components/ModGrid';
 import AddModButton from '@/components/AddModButton';
 import Settings from '@/components/Settings';
+import { FaDownload, FaGamepad } from 'react-icons/fa';
 
 export default function Home() {
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [selectedCharacter, setSelectedCharacter] = useState(null);
   const [showSettings, setShowSettings] = useState(false);
+  const [context, setContext] = useState('installed');
+
+  const onContextChange = (newContext) => {
+    setContext(newContext);
+  };
 
   return (
     <main className="flex h-screen bg-gray-100 dark:bg-gray-900 overflow-hidden rounded-lg border-solid border-2 border-slate-200 dark:border-slate-600">
@@ -21,19 +27,40 @@ export default function Home() {
       )}
       
       <div className="flex-1 flex flex-col overflow-hidden">
-        <div className="pywebview-drag-region flex-none p-2 flex bg-white dark:bg-gray-800 shadow">
-          <span className="text-xs font-bold text-gray-900 dark:text-white">
-            {selectedCategory} {selectedCategory === 'Characters' ? `/ ${selectedCharacter?.name || ''} /` : '/'}
-          </span>
+        <div className="pywebview-drag-region flex-none p-2 pb-0 flex items-center bg-white dark:bg-gray-800 shadow">
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => onContextChange('installed')}
+              className={`px-4 py-1.5 rounded-t-lg border border-b-0 border-gray-200 dark:border-gray-700 flex items-center gap-2 ${
+                context === 'installed' 
+                  ? 'bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white border-gray-200 dark:border-gray-700' 
+                  : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'
+              }`}
+            >
+              <FaDownload className="w-4 h-4" />
+              <span className="text-sm font-medium">Installed</span>
+            </button>
+            <button
+              onClick={() => onContextChange('gamebanana')}
+              className={`px-4 py-1.5 rounded-t-lg border border-b-0 border-gray-200 dark:border-gray-700 flex items-center gap-2 ${
+                context === 'gamebanana' 
+                  ? 'bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white border-gray-200 dark:border-gray-700' 
+                  : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'
+              }`}
+            >
+              <FaGamepad className="w-4 h-4" />
+              <span className="text-sm font-medium">GameBanana</span>
+            </button>
+          </div>
         </div>
 
         <div className="flex-1 overflow-auto p-4">
           <ModGrid
             category={selectedCategory}
             character={selectedCharacter}
+            context={context}
           />
-
-          <AddModButton />
+          {context === 'installed' && <AddModButton />}
         </div>
       </div>
 
