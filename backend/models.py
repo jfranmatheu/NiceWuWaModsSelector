@@ -56,7 +56,7 @@ class GameBananaInstallRequest(BaseModel):
     selectedFiles: List[int]
 
     class Config:
-        allow_population_by_field_name = True
+        validate_by_name = True
 
     @validator('selectedFiles', pre=True)
     def validate_selected_files(cls, v):
