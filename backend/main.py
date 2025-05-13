@@ -58,7 +58,9 @@ def create_window():
         width=1280,
         height=720,
         resizable=True,
-        min_size=(800, 600)
+        min_size=(800, 600),
+        frameless=True,
+        easy_drag=False
     )
 
 @app.get("/")

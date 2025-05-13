@@ -13,7 +13,7 @@ export default function Home() {
   const [showSettings, setShowSettings] = useState(false);
 
   return (
-    <main className="flex h-screen bg-gray-100 dark:bg-gray-900 overflow-hidden">
+    <main className="flex h-screen bg-gray-100 dark:bg-gray-900 overflow-hidden rounded-lg border-solid border-2 border-slate-200 dark:border-slate-600">
       <Sidebar onCategoryChange={setSelectedCategory} selectedCategory={selectedCategory} setShowSettings={setShowSettings} />
       
       {selectedCategory === 'Characters' && (
@@ -21,7 +21,7 @@ export default function Home() {
       )}
       
       <div className="flex-1 flex flex-col overflow-hidden">
-        <div className="flex-none p-2 flex bg-white dark:bg-gray-800 shadow">
+        <div className="pywebview-drag-region flex-none p-2 flex bg-white dark:bg-gray-800 shadow">
           <span className="text-xs font-bold text-gray-900 dark:text-white">
             {selectedCategory} {selectedCategory === 'Characters' ? `/ ${selectedCharacter} /` : '/'}
           </span>
