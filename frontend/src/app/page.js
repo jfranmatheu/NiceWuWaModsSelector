@@ -7,16 +7,39 @@ import ModGrid from '@/components/ModGrid';
 import AddModButton from '@/components/AddModButton';
 import Settings from '@/components/Settings';
 import { FaDownload, FaGamepad } from 'react-icons/fa';
+import useSettingsStore from '@/store/settingsStore';
+import TacetMarkLoader from '@/components/TacetMarkLoader';
 
 export default function Home() {
   const [selectedCategory, setSelectedCategory] = useState("Characters");
   const [selectedCharacter, setSelectedCharacter] = useState("Zani");
   const [showSettings, setShowSettings] = useState(false);
   const [context, setContext] = useState('installed');
+  const {settings, loadSettings, isLoading} = useSettingsStore();
+  const [isLoadingFake, setIsLoadingFake] = useState(true);
+
+  useEffect(() => {
+    // Add some delay to the loading screen
+    setTimeout(() => {
+      loadSettings();
+      setIsLoadingFake(false);
+    }, 4000);
+  }, []);
 
   const onContextChange = (newContext) => {
     setContext(newContext);
   };
+
+  if (isLoadingFake || isLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center h-screen bg-black/80">
+        <TacetMarkLoader size={96} />
+        <span className="mt-4 text-white text-lg font-semibold tracking-widest animate-pulse">
+          Loading...
+        </span>
+      </div>
+    );
+  }
 
   return (
     <main className="flex h-screen bg-gray-100 dark:bg-gray-900 overflow-hidden rounded-lg border-solid border-2 border-slate-200 dark:border-slate-600">
