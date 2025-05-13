@@ -8,20 +8,24 @@ import { FaUser } from "react-icons/fa";
 import { RiLayout3Fill } from "react-icons/ri";
 import { IoIosArrowForward, IoIosArrowBack } from "react-icons/io";
 import { MdSettings } from "react-icons/md";
+import { GiMonsterGrasp } from "react-icons/gi";
+import { GiAngelWings } from "react-icons/gi";
 
 export default function Sidebar({ onCategoryChange, selectedCategory, setShowSettings }) {
   const [isOpen, setIsOpen] = useState(false);
 
   const categories = [
     { name: 'Characters', icon: <GiSwordman /> }, // 'https://images.gamebanana.com/img/ico/ModCategory/6654b6596ba11.png'
-    { name: 'NPCs', icon: <FaUser /> },
+    { name: 'Echoes', icon: <GiMonsterGrasp /> },
+    { name: 'Gliders', icon: <GiAngelWings /> },
     { name: 'Weapons', icon: <GiSwordsEmblem /> },
+    { name: 'NPCs', icon: <FaUser /> },
     { name: 'UI', icon: <RiLayout3Fill /> },
     { name: 'Other', icon: <MdOutlineQuestionMark /> }
   ];
 
   return (
-    <div className={`bg-white dark:bg-gray-800 h-screen flex flex-col flex-none transition-all duration-300 ${isOpen ? 'w-[11rem]' : 'w-16'}`}>
+    <div className={`bg-white dark:bg-gray-800 h-screen flex flex-col flex-none transition-all duration-300 ${isOpen ? 'w-50' : 'w-16'}`}>
       <div className="flex-none p-2">
         <button
           onClick={() => setIsOpen(!isOpen)}
