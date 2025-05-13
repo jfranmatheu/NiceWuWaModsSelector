@@ -222,7 +222,7 @@ export default function CharacterSidebar({ onCharacterChange, selectedCharacter 
   return (
     <div className="bg-white dark:bg-gray-800 h-screen flex flex-col flex-none w-[15rem]">
       {/* Filters Header - Fixed */}
-      <div className="flex-none bg-white dark:bg-gray-800 py-2 z-10 flex justify-between items-center px-2 border-l border-gray-200 dark:border-gray-700">
+      <div className="pywebview-drag-region flex-none bg-white dark:bg-gray-800 py-2 z-10 flex justify-between items-center px-2 border-l border-gray-200 dark:border-gray-700">
         {/* Left side - Dropdowns */}
         <div className="flex gap-2">
           {/* Rarity Dropdown */}

@@ -26,7 +26,7 @@ export default function Sidebar({ onCategoryChange, selectedCategory, setShowSet
 
   return (
     <div className={`bg-white dark:bg-gray-800 h-screen flex flex-col flex-none transition-all duration-300 ${isOpen ? 'w-50' : 'w-16'}`}>
-      <div className="flex-none p-2">
+      <div className="pywebview-drag-region flex-none p-2">
         <button
           onClick={() => setIsOpen(!isOpen)}
           className="w-full p-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
