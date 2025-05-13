@@ -23,7 +23,7 @@ export default function Home() {
       <div className="flex-1 flex flex-col overflow-hidden">
         <div className="pywebview-drag-region flex-none p-2 flex bg-white dark:bg-gray-800 shadow">
           <span className="text-xs font-bold text-gray-900 dark:text-white">
-            {selectedCategory} {selectedCategory === 'Characters' ? `/ ${selectedCharacter} /` : '/'}
+            {selectedCategory} {selectedCategory === 'Characters' ? `/ ${selectedCharacter?.name || ''} /` : '/'}
           </span>
         </div>
 

@@ -4,9 +4,11 @@ import { useState } from 'react';
 import { FiSearch } from 'react-icons/fi';
 import { LuSettings2 } from "react-icons/lu";
 import { LuDot } from "react-icons/lu";
+import { FaGamepad } from "react-icons/fa";
+import { FaDownload } from "react-icons/fa";
 import useSettingsStore from '@/store/settingsStore';
 
-export default function ModGridHeader({ onSearch }) {
+export default function ModGridHeader({ onSearch, selectedCharacter, onContextChange, context }) {
   const { settings, updateSettings } = useSettingsStore();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -54,6 +56,32 @@ export default function ModGridHeader({ onSearch }) {
           onChange={handleSearch}
           className="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
+      </div>
+
+      {/* Context Switch */}
+      <div className="flex items-center gap-2 mx-4">
+        <button
+          onClick={() => onContextChange('installed')}
+          className={`p-2 rounded-lg flex items-center gap-2 ${
+            context === 'installed' 
+              ? 'bg-blue-500 text-white' 
+              : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300'
+          }`}
+        >
+          <FaDownload className="w-4 h-4" />
+          <span className="text-sm">Installed</span>
+        </button>
+        <button
+          onClick={() => onContextChange('gamebanana')}
+          className={`p-2 rounded-lg flex items-center gap-2 ${
+            context === 'gamebanana' 
+              ? 'bg-blue-500 text-white' 
+              : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300'
+          }`}
+        >
+          <FaGamepad className="w-4 h-4" />
+          <span className="text-sm">GameBanana</span>
+        </button>
       </div>
 
       {/* Settings Menu */}

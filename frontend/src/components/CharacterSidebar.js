@@ -152,6 +152,28 @@ export default function CharacterSidebar({ onCharacterChange, selectedCharacter 
             return a.name.localeCompare(b.name);
           }
         });
+        // Fetch the characters categories from gamebanana
+        // We are interesting in the category ID to be able to fetch the mods from the character category.
+        // the category ID is '_idRow', the mod count in the category is '_nItemCount' the category url is '_sUrl' and the category name is '_sName' and it should match the character name.
+        const gb_response = await fetch("https://gamebanana.com/apiv11/Mod/Categories?_idCategoryRow=29524&_sSort=a_to_z&_bShowEmpty=true");
+        const gb_data = await gb_response.json();
+        console.log("gb_data", gb_data);
+        // Store the gamebanana category for each character in charactersData.
+        // gb_data is an array of objects, each object has a _sName property that should match the character name.
+        charactersData.forEach(char => {
+          for (const category of gb_data) {
+            if (category._sName === char.name) {
+              char.gamebanana = {
+                cat_id: category._idRow,
+                // cat_name: category._sName, // not needed
+                cat_url: category._sUrl,
+                cat_mod_count: category._nItemCount,
+                // cat_icon: category._sIcon, // not needed
+              };
+            }
+          }
+        });
+
         console.log("charactersData", charactersData);
         setCharacters(charactersData);
       } catch (error) {
@@ -381,9 +403,9 @@ export default function CharacterSidebar({ onCharacterChange, selectedCharacter 
               {filteredCharacters.map((character) => (
                 <button
                   key={character.id}
-                  onClick={() => onCharacterChange(character.name)}
+                  onClick={() => onCharacterChange(character)}
                   className={`relative flex flex-col items-center rounded-lg overflow-hidden transition-colors ${
-                    selectedCharacter === character.name
+                    selectedCharacter?.name === character.name
                       ? 'ring-2 ring-blue-500'
                       : 'hover:bg-gray-100 dark:hover:bg-gray-700'
                   }`}
