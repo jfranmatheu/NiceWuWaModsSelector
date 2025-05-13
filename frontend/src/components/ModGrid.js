@@ -17,6 +17,7 @@ export default function ModGrid({ category, character, context }) {
   const [selectedGamebananaMod, setSelectedGamebananaMod] = useState(null);
   const [isLoadingGamebanana, setIsLoadingGamebanana] = useState(false);
   const [gamebananaError, setGamebananaError] = useState(null);
+  const [sortBy, setSortBy] = useState('date');
 
   useEffect(() => {
     if (context === 'installed') {
@@ -33,6 +34,7 @@ export default function ModGrid({ category, character, context }) {
     setSearchQuery('');
     setSelectedModId(null);
     setSelectedGamebananaMod(null);
+    setSortBy('date');
   }, [context]);
 
   const loadGamebananaMods = async (categoryId) => {
@@ -64,6 +66,10 @@ export default function ModGrid({ category, character, context }) {
 
   const handleSearch = (query) => {
     setSearchQuery(query.toLowerCase());
+  };
+
+  const handleSortChange = (sortType) => {
+    setSortBy(sortType);
   };
 
   // Filter mods based on search query
@@ -107,6 +113,24 @@ export default function ModGrid({ category, character, context }) {
     // Combine both results, with startsWith matches first
     return [...startsWithMatches, ...containsMatches];
   }, [gamebananaMods, searchQuery]);
+
+  // Sort GameBanana mods based on the selected sort type
+  const sortedGamebananaMods = useMemo(() => {
+    if (!gamebananaMods.length) return [];
+    
+    return [...gamebananaMods].sort((a, b) => {
+      switch (sortBy) {
+        case 'date':
+          return new Date(b._tsDateUpdated) - new Date(a._tsDateUpdated);
+        case 'likes':
+          return b._nLikeCount - a._nLikeCount;
+        case 'views':
+          return b._nViewCount - a._nViewCount;
+        default:
+          return 0;
+      }
+    });
+  }, [gamebananaMods, sortBy]);
 
   const renderContent = () => {
     if (context === 'installed') {
@@ -211,7 +235,7 @@ export default function ModGrid({ category, character, context }) {
 
       return (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 p-6">
-          {filteredGamebananaMods.map((mod) => (
+          {sortedGamebananaMods.map((mod) => (
             <GameBananaModCard
               key={mod._idRow}
               mod={mod}
@@ -228,6 +252,8 @@ export default function ModGrid({ category, character, context }) {
       <ModGridHeader 
         onSearch={handleSearch} 
         selectedCharacter={character}
+        onSortChange={handleSortChange}
+        context={context}
       />
       <div className="flex-1 overflow-y-auto">
         {renderContent()}

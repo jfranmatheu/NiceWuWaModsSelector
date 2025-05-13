@@ -4,12 +4,15 @@ import { useState } from 'react';
 import { FiSearch } from 'react-icons/fi';
 import { LuSettings2 } from "react-icons/lu";
 import { LuDot } from "react-icons/lu";
+import { FaSort } from "react-icons/fa";
 import useSettingsStore from '@/store/settingsStore';
 
-export default function ModGridHeader({ onSearch, selectedCharacter }) {
+export default function ModGridHeader({ onSearch, selectedCharacter, onSortChange, context }) {
   const { settings, updateSettings } = useSettingsStore();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [showSortDropdown, setShowSortDropdown] = useState(false);
+  const [sortBy, setSortBy] = useState('date');
 
   const handleLabelToggle = async (label) => {
     const newSettings = {
@@ -42,6 +45,12 @@ export default function ModGridHeader({ onSearch, selectedCharacter }) {
     onSearch(query);
   };
 
+  const handleSortChange = (sortType) => {
+    setSortBy(sortType);
+    setShowSortDropdown(false);
+    onSortChange(sortType);
+  };
+
   return (
     <div className="flex items-center justify-between pb-4 border-b border-gray-200 dark:border-gray-700">
       {/* Search Box */}
@@ -55,6 +64,48 @@ export default function ModGridHeader({ onSearch, selectedCharacter }) {
           className="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
       </div>
+
+      {/* Sort Dropdown - Only show for GameBanana context */}
+      {context === 'gamebanana' && (
+        <div className="relative ml-4">
+          <button
+            onClick={() => setShowSortDropdown(!showSortDropdown)}
+            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
+          >
+            <FaSort className="w-4 h-4" />
+            <span className="text-sm">Sort by</span>
+          </button>
+
+          {showSortDropdown && (
+            <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 p-2 z-20">
+              <button
+                onClick={() => handleSortChange('date')}
+                className={`w-full px-3 py-2 text-left text-sm rounded hover:bg-gray-100 dark:hover:bg-gray-700 ${
+                  sortBy === 'date' ? 'bg-gray-100 dark:bg-gray-700' : ''
+                }`}
+              >
+                Latest Update
+              </button>
+              <button
+                onClick={() => handleSortChange('likes')}
+                className={`w-full px-3 py-2 text-left text-sm rounded hover:bg-gray-100 dark:hover:bg-gray-700 ${
+                  sortBy === 'likes' ? 'bg-gray-100 dark:bg-gray-700' : ''
+                }`}
+              >
+                Most Liked
+              </button>
+              <button
+                onClick={() => handleSortChange('views')}
+                className={`w-full px-3 py-2 text-left text-sm rounded hover:bg-gray-100 dark:hover:bg-gray-700 ${
+                  sortBy === 'views' ? 'bg-gray-100 dark:bg-gray-700' : ''
+                }`}
+              >
+                Most Viewed
+              </button>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Settings Menu */}
       <div className="relative ml-4">
