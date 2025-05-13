@@ -7,6 +7,7 @@ import GameBananaModModal from './GameBananaModModal';
 import ModGridHeader from './ModGridHeader';
 import useModStore from '@/store/modStore';
 import useSettingsStore from '@/store/settingsStore';
+import { MdNavigateNext, MdNavigateBefore } from "react-icons/md";
 
 export default function ModGrid({ category, character, context }) {
   const { mods, loadMods, isLoading, error } = useModStore();
@@ -18,6 +19,10 @@ export default function ModGrid({ category, character, context }) {
   const [isLoadingGamebanana, setIsLoadingGamebanana] = useState(false);
   const [gamebananaError, setGamebananaError] = useState(null);
   const [sortBy, setSortBy] = useState('date');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalMods, setTotalMods] = useState(0);
+  const [isLastPage, setIsLastPage] = useState(false);
+  const modsPerPage = 18;
 
   useEffect(() => {
     if (context === 'installed') {
@@ -35,25 +40,36 @@ export default function ModGrid({ category, character, context }) {
     setSelectedModId(null);
     setSelectedGamebananaMod(null);
     setSortBy('date');
+    setCurrentPage(1);
+    setTotalMods(0);
+    setIsLastPage(false);
   }, [context]);
 
-  const loadGamebananaMods = async (categoryId) => {
+  const loadGamebananaMods = async (categoryId, page = 1) => {
     setIsLoadingGamebanana(true);
     setGamebananaError(null);
     try {
-      const url = `https://gamebanana.com/apiv11/Mod/Index?_nPerpage=18&_aFilters%5BGeneric_Category%5D=${categoryId}&_nPage=1`;
+      const url = `https://gamebanana.com/apiv11/Mod/Index?_nPerpage=${modsPerPage}&_aFilters%5BGeneric_Category%5D=${categoryId}&_nPage=${page}`;
       console.log("requesting modes for category", categoryId, "from url", url);
       const response = await fetch(url);
       const data = await response.json();
       setGamebananaMods(data._aRecords.filter(mod => 
         mod._bHasFiles && mod._sInitialVisibility !== "hide"
       ));
+      setTotalMods(data._aMetadata._nRecordCount);
+      setIsLastPage(data._aMetadata._bIsComplete);
     } catch (error) {
       setGamebananaError('Failed to load mods from GameBanana');
       console.error('Error loading GameBanana mods:', error);
     } finally {
       setIsLoadingGamebanana(false);
     }
+  };
+
+  const handlePageChange = (newPage) => {
+    if (newPage < 1 || (newPage > currentPage && isLastPage)) return;
+    setCurrentPage(newPage);
+    loadGamebananaMods(character.gamebanana.cat_id, newPage);
   };
 
   const handleModSelect = (modId) => {
@@ -247,8 +263,45 @@ export default function ModGrid({ category, character, context }) {
     }
   };
 
+  const renderPagination = () => {
+    if (context !== 'gamebanana' || totalMods === 0) return null;
+
+    return (
+      <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex items-center gap-2 bg-gray-800/50 dark:bg-gray-900/50 rounded-lg shadow-lg border border-gray-700/75 dark:border-gray-600/75 p-2 backdrop-blur-[2px]">
+        <button
+          onClick={() => handlePageChange(currentPage - 1)}
+          disabled={currentPage === 1}
+          className={`px-3 py-1.5 rounded-md text-xl font-medium ${
+            currentPage === 1
+              ? 'text-gray-600 dark:text-gray-500 cursor-not-allowed'
+              : 'text-gray-200 dark:text-gray-200 hover:bg-gray-700 dark:hover:bg-gray-800'
+          }`}
+        >
+          <MdNavigateBefore />
+        </button>
+        <span className="py-1.5 text-sm font-medium text-gray-200 dark:text-gray-200">
+          Page {currentPage}
+        </span>
+        <button
+          onClick={() => handlePageChange(currentPage + 1)}
+          disabled={isLastPage}
+          className={`px-3 py-1.5 rounded-md text-xl font-medium ${
+            isLastPage
+              ? 'text-gray-600 dark:text-gray-500 cursor-not-allowed'
+              : 'text-gray-200 dark:text-gray-200 hover:bg-gray-700 dark:hover:bg-gray-800'
+          }`}
+        >
+          <MdNavigateNext />
+        </button>
+        <span className="px-3 py-1.5 text-sm font-medium text-gray-400 dark:text-gray-400">
+          ({totalMods})
+        </span>
+      </div>
+    );
+  };
+
   return (
-    <div className="flex flex-col h-full">
+    <div className="relative flex flex-col h-full">
       <ModGridHeader 
         onSearch={handleSearch} 
         selectedCharacter={character}
@@ -258,6 +311,7 @@ export default function ModGrid({ category, character, context }) {
       <div className="flex-1 overflow-y-auto">
         {renderContent()}
       </div>
+      {renderPagination()}
       {selectedGamebananaMod && (
         <GameBananaModModal
           mod={selectedGamebananaMod}
