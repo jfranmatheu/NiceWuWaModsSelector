@@ -60,7 +60,8 @@ def create_window():
         resizable=True,
         min_size=(800, 600),
         frameless=True,
-        easy_drag=False
+        easy_drag=False,
+        background_color="#000000"
     )
 
 @app.get("/")
