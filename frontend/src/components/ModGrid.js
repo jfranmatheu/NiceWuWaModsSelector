@@ -224,12 +224,14 @@ export default function ModGrid({ category, character, context }) {
   };
 
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col h-full">
       <ModGridHeader 
         onSearch={handleSearch} 
         selectedCharacter={character}
       />
-      {renderContent()}
+      <div className="flex-1 overflow-y-auto">
+        {renderContent()}
+      </div>
       {selectedGamebananaMod && (
         <GameBananaModModal
           mod={selectedGamebananaMod}
