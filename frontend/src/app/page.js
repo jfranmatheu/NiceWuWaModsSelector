@@ -9,8 +9,8 @@ import Settings from '@/components/Settings';
 import { FaDownload, FaGamepad } from 'react-icons/fa';
 
 export default function Home() {
-  const [selectedCategory, setSelectedCategory] = useState(null);
-  const [selectedCharacter, setSelectedCharacter] = useState(null);
+  const [selectedCategory, setSelectedCategory] = useState("Characters");
+  const [selectedCharacter, setSelectedCharacter] = useState("Zani");
   const [showSettings, setShowSettings] = useState(false);
   const [context, setContext] = useState('installed');
 
