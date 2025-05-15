@@ -80,7 +80,7 @@ const ImageDisplay = ({ filePath, relative = false, alt = 'Image', className = '
 
   if (deferredEffect) {
     return (
-      <div className="relative w-full h-full">
+      <div className="relative w-full h-full image-zoom-container">
         {loading && (
           <div className="animate-pulse bg-gray-200 dark:bg-gray-800 absolute inset-0 z-10 flex items-center justify-center">
             <span className="loader"></span>
@@ -91,7 +91,7 @@ const ImageDisplay = ({ filePath, relative = false, alt = 'Image', className = '
           alt={alt}
           onError={() => setError('Failed to load image')}
           onLoad={() => setLoading(false)}
-          className={`w-full h-auto object-cover transition-all duration-500 ${loading ? 'blur-md scale-105' : 'blur-0 scale-100'} ${className}`}
+          className={`image-zoom w-full h-full object-cover transition-all duration-500 ${loading ? 'blur-md scale-105' : 'blur-0 scale-100'} ${className}`}
           style={loading ? { filter: 'blur(8px)' } : {}}
           {...props}
         />
@@ -103,7 +103,7 @@ const ImageDisplay = ({ filePath, relative = false, alt = 'Image', className = '
         src={imageUrl}
         alt={alt}
         onError={() => setError('Failed to load image')}
-        className={`w-full h-auto ${className}`}
+        className={`w-full h-full object-cover ${className}`}
         {...props}
       />
     );

@@ -34,14 +34,14 @@ export default function ModCard({ mod, isSelected, onSelect, uiSettings, isInGam
     <div
       className={`relative aspect-square w-full bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden transition-all duration-200 hover:shadow-lg cursor-pointer
         ${isSelected ? 'ring-2 ring-blue-500 dark:ring-blue-400' : ''}
-        ${isInGameMode ? 'scale-90' : ''}`}
+        ${isInGameMode ? 'scale-90' : ''} image-zoom-container`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       onClick={handleSelect}
       onDoubleClick={isInGameMode ? undefined : handleToggle}
     >
       {/* Preview Image or Placeholder */}
-      <div className={`absolute inset-0 transition-all duration-200
+      <div className={`absolute inset-0 transition-all duration-200 overflow-hidden
         ${mod.enabled ? '' : 'grayscale-[0.7] saturate-[0.7]'}`}>
         {previewImage ? (
           <ImageDisplay
@@ -50,7 +50,7 @@ export default function ModCard({ mod, isSelected, onSelect, uiSettings, isInGam
             alt={mod.name}
             deferredEffect={true}
             fill
-            className="object-cover"
+            className="image-zoom w-full h-full"
             unoptimized
           />
         ) : (

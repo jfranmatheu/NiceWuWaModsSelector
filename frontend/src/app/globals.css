@@ -78,6 +78,20 @@ body {
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 
+/* Image zoom effect */
+.image-zoom-container {
+  overflow: hidden;
+}
+
+.image-zoom {
+  transition: transform 0.3s ease-in-out;
+  object-fit: cover;
+}
+
+.image-zoom-container:hover .image-zoom {
+  transform: scale(1.1);
+}
+
 /* Button styles */
 .btn {
   @apply px-4 py-2 rounded transition-colors duration-200;

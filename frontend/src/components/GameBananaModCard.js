@@ -24,7 +24,7 @@ export default function GameBananaModCard({ mod, onSelect }) {
 
   return (
     <div 
-      className="relative rounded-lg overflow-hidden bg-white dark:bg-gray-800 shadow-lg hover:shadow-xl transition-all duration-200 cursor-pointer"
+      className="image-zoom-container relative rounded-lg overflow-hidden bg-white dark:bg-gray-800 shadow-lg hover:shadow-xl transition-all duration-200 cursor-pointer"
       onClick={() => onSelect(mod)}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
@@ -77,7 +77,6 @@ export default function GameBananaModCard({ mod, onSelect }) {
               filePath={mod._aSubmitter._sAvatarUrl}
               alt={mod._aSubmitter._sName}
               fill
-              className="object-cover"
               deferredEffect={true}
             />
           </div>
