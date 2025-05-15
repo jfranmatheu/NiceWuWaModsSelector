@@ -34,6 +34,9 @@ game_state_monitor = None
 window = None
 
 
+USE_EXPERIMENTAL_INGAME_MODE = False
+
+
 class ModsDirRequest(BaseModel):
     mods_dir: str
 
@@ -93,6 +96,8 @@ def create_window():
         easy_drag=False,
         background_color="#000000"
     )
+    if not USE_EXPERIMENTAL_INGAME_MODE:
+        return
     global game_detection_service, game_state_monitor
     game_detection_service = GameDetectionService.get()
     game_state_monitor = GameStateMonitor.get()
@@ -270,6 +275,8 @@ def get_hwnds_for_pid(pid):
     return hwnds
 
 def on_loaded():
+    if not USE_EXPERIMENTAL_INGAME_MODE:
+        return
     global window
     window.restore() # on_loaded() fires before the window actually exists. Thankfully, window.restore() wont return until it exists.
     hwnd = get_hwnds_for_pid(os.getpid())[0]
