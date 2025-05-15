@@ -83,27 +83,46 @@ const useModStore = create((set, get) => ({
     }
   },
 
-  toggleMod: async (modId) => {
+  toggleMod: async (modId, exclusive = false) => {
     set({ isLoading: true, error: null });
     try {
-      const response = await fetch(`${API_URL}/mods/${modId}/toggle`, {
+      const response = await fetch(`${API_URL}/mods/${modId}/toggle?exclusive=${exclusive}`, {
         method: 'PATCH',
       });
       console.log("toggleMod: response: ", response);
       if (!response.ok) throw new Error('Failed to toggle mod');
       
-      const updatedMod = await response.json();
-      // Transform the updated mod data to include preview image data
-      const transformedMod = {
-        ...updatedMod,
-        preview: getPreviewUrl(updatedMod),
-      };
-      set(state => ({
-        mods: state.mods.map(mod => 
-          mod.id === modId ? transformedMod : mod
-        ),
-        isLoading: false
-      }));
+      const result = await response.json();
+      
+      // If exclusive toggle, result will contain all affected mods
+      if (exclusive && Array.isArray(result)) {
+        // Transform all mods to include preview URLs
+        const transformedMods = result.map(mod => ({
+          ...mod,
+          preview: getPreviewUrl(mod),
+        }));
+        
+        set(state => ({
+          mods: state.mods.map(mod => {
+            // Find the updated version of this mod in the result
+            const updatedMod = transformedMods.find(m => m.id === mod.id);
+            return updatedMod || mod;
+          }),
+          isLoading: false
+        }));
+      } else {
+        // Single mod toggle
+        const transformedMod = {
+          ...result,
+          preview: getPreviewUrl(result),
+        };
+        set(state => ({
+          mods: state.mods.map(mod => 
+            mod.id === modId ? transformedMod : mod
+          ),
+          isLoading: false
+        }));
+      }
     } catch (error) {
       set({ error: error.message, isLoading: false });
     }

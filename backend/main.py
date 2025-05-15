@@ -9,6 +9,10 @@ import webview
 import threading
 from contextlib import asynccontextmanager
 from pydantic import BaseModel
+import win32gui
+import win32process
+import win32con
+import win32api
 
 from models import Mod, ModCategory, GameBananaInstallRequest, Character, CharacterResponse, GameBananaCategory
 from services.mod_service import ModService
@@ -37,16 +41,12 @@ class ModsDirRequest(BaseModel):
 async def lifespan(app: FastAPI):
     """Initialize data on startup and cleanup on shutdown"""
     # Startup
-    global window
     await get_characters_list()
     await mount_character_subcategories()
     global app_service, mod_service, gamebanana_service, game_detection_service, game_state_monitor
     app_service = AppService.get()
     mod_service = ModService.get()
     gamebanana_service = GameBananaService.get()
-    game_detection_service = GameDetectionService.get()
-    game_state_monitor = GameStateMonitor.get()
-    game_state_monitor.start_monitoring(window)
     yield
     # Shutdown
     pass
@@ -93,6 +93,10 @@ def create_window():
         easy_drag=False,
         background_color="#000000"
     )
+    global game_detection_service, game_state_monitor
+    game_detection_service = GameDetectionService.get()
+    game_state_monitor = GameStateMonitor.get()
+    game_state_monitor.start_monitoring(window)
 
 
 @app.get("/")
@@ -145,10 +149,10 @@ async def delete_mod(mod_id: str):
     return await mod_service.delete_mod(mod_id)
 
 @app.patch("/api/mods/{mod_id}/toggle")
-async def toggle_mod(mod_id: str):
-    """Enable/disable a mod"""
+async def toggle_mod(mod_id: str, exclusive: bool = False):
+    """Enable/disable a mod. If exclusive is True, disable all other mods for the same character."""
     global mod_service
-    return await mod_service.toggle_mod(mod_id)
+    return await mod_service.toggle_mod(mod_id, exclusive)
 
 # GameBanana Integration
 @app.post("/api/mods/gamebanana")
@@ -253,6 +257,27 @@ def start_server():
     import uvicorn
     uvicorn.run(app, host="127.0.0.1", port=8000)
 
+
+def get_hwnds_for_pid(pid):
+    hwnds = []
+    def callback(hwnd, hwnds):
+        if win32gui.IsWindowVisible(hwnd) and win32gui.IsWindowEnabled(hwnd):
+            found_tid, found_pid = win32process.GetWindowThreadProcessId(hwnd)
+            if found_pid == pid:
+                hwnds.append(hwnd)
+        return True
+    win32gui.EnumWindows(callback, hwnds)
+    return hwnds
+
+def on_loaded():
+    global window
+    window.restore() # on_loaded() fires before the window actually exists. Thankfully, window.restore() wont return until it exists.
+    hwnd = get_hwnds_for_pid(os.getpid())[0]
+    win32gui.SetWindowLong(hwnd, win32con.GWL_EXSTYLE, win32gui.GetWindowLong(hwnd, win32con.GWL_EXSTYLE) | win32con.WS_EX_LAYERED)
+    win32gui.SetLayeredWindowAttributes(hwnd, win32api.RGB(0,0,1), 200, win32con.LWA_ALPHA | win32con.LWA_COLORKEY)
+    # window.move(0,0)
+
+
 if __name__ == "__main__":
     # Start the FastAPI server in a separate thread
     server_thread = threading.Thread(target=start_server, daemon=True)
@@ -260,4 +285,4 @@ if __name__ == "__main__":
     
     # Create and start the window
     create_window()
-    webview.start(debug=True, gui='edgehtml')
+    webview.start(on_loaded, debug=True, gui='edgehtml')

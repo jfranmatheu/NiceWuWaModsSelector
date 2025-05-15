@@ -9,7 +9,7 @@ import useModStore from '@/store/modStore';
 import useSettingsStore from '@/store/settingsStore';
 import { MdNavigateNext, MdNavigateBefore } from "react-icons/md";
 
-export default function ModGrid({ category, character, context }) {
+export default function ModGrid({ category, character, context, isInGameMode }) {
   const { mods, loadMods, isLoading, error } = useModStore();
   const { settings } = useSettingsStore();
   const [selectedModId, setSelectedModId] = useState(null);
@@ -192,7 +192,9 @@ export default function ModGrid({ category, character, context }) {
       }
 
       return (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 p-6">
+        <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 p-6 ${
+          isInGameMode ? 'gap-4 p-4' : ''
+        }`}>
           {filteredMods.map((mod) => (
             <ModCard 
               key={mod.id} 
@@ -200,6 +202,7 @@ export default function ModGrid({ category, character, context }) {
               isSelected={selectedModId === mod.id}
               onSelect={handleModSelect}
               uiSettings={settings.ui}
+              isInGameMode={isInGameMode}
             />
           ))}
         </div>
@@ -290,12 +293,14 @@ export default function ModGrid({ category, character, context }) {
 
   return (
     <div className="relative flex flex-col h-full">
-      <ModGridHeader 
-        onSearch={handleSearch} 
-        selectedCharacter={character}
-        onSortChange={handleSortChange}
-        context={context}
-      />
+      {!isInGameMode && (
+        <ModGridHeader 
+          onSearch={handleSearch} 
+          selectedCharacter={character}
+          onSortChange={handleSortChange}
+          context={context}
+        />
+      )}
       <div className="flex-1 overflow-y-auto">
         {renderContent()}
       </div>

@@ -168,3 +168,16 @@ body {
   mix-blend-mode: screen;
   background-blend-mode: screen;
 }
+
+/* In-game mode styles */
+.in-game-mode {
+  border: none !important;
+  border-radius: 0 !important;
+  background: rgba(17, 24, 39, 0.95) !important; /* dark:bg-gray-900 with opacity */
+  backdrop-filter: blur(8px);
+  opacity: 0.85;
+}
+
+.in-game-mode .pywebview-drag-region {
+  display: none !important;
+}

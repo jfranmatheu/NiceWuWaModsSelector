@@ -308,14 +308,40 @@ class ModService:
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Error deleting mod: {str(e)}")
 
-    async def toggle_mod(self, mod_id: str) -> Mod:
-        """Toggle mod enabled/disabled state"""
+    async def toggle_mod(self, mod_id: str, exclusive: bool = False) -> list[Mod]:
+        """Toggle mod enabled/disabled state. If exclusive is True, disable all other mods for the same character.
+        Returns a list of all affected mods when exclusive is True, or just the toggled mod when exclusive is False."""
         try:
             # Find mod
             mod = self.mods_metadata_id.get(mod_id, None)
             if not mod:
                 print(f"Mod not found: {mod_id}")
                 raise HTTPException(status_code=404, detail="Mod not found")
+
+            affected_mods = [mod]  # List to track all mods that were affected
+
+            # If we're enabling the mod and exclusive is True, disable all other mods for the same character
+            if exclusive and not mod['enabled'] and mod['character']:
+                # Get all mods for the same character
+                character_mods = self.mods_metadata.get("Characters", {}).get(mod['character'], [])
+                for other_mod in character_mods:
+                    if other_mod['id'] != mod_id and other_mod['enabled']:
+                        # Disable the other mod
+                        other_mod['enabled'] = False
+                        other_mod['updated_at'] = int(datetime.now().timestamp())
+                        affected_mods.append(other_mod)
+                        
+                        # Rename the directory
+                        other_mod_dirpath = AppService.get().mods_dir / other_mod['category'] / other_mod['character']
+                        if other_mod_dirpath.exists():
+                            os.rename(
+                                other_mod_dirpath / other_mod['name'],
+                                other_mod_dirpath / ('DISABLED_' + other_mod['name'])
+                            )
+                            
+                            # Update metadata file
+                            with open(other_mod_dirpath / "metadata.json", 'w') as f:
+                                json.dump(other_mod, f, indent=2)
 
             # Toggle enabled state
             mod['enabled'] = not mod['enabled']
@@ -341,6 +367,14 @@ class ModService:
 
             print(f"Toggled mod: {mod_id}")
 
+            # If we're in game mode (exclusive toggle), request a mod refresh
+            if exclusive:
+                from services.game_state_monitor import GameStateMonitor
+                GameStateMonitor.get().request_mod_refresh()
+
+            # Return all affected mods if exclusive, otherwise just the toggled mod
+            if exclusive:
+                return [Mod(**mod) for mod in affected_mods]
             return Mod(**mod)
         except Exception as e:
             print(f"Error toggling mod: {str(e)}")

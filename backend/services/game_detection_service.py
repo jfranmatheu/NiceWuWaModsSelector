@@ -1,11 +1,14 @@
 import win32gui
 import win32con
 import win32process
+import win32api
+import ctypes
 import psutil
 import cv2
 import numpy as np
 import pyautogui
 from typing import Optional, Tuple
+import time
 
 class GameDetectionService:
     _instance = None
@@ -82,24 +85,46 @@ class GameDetectionService:
         except:
             return None
 
-    def detect_screen(self, template_path: str, threshold: float = 0.8) -> bool:
+    def detect_screen(self, template_path: str, threshold: float = 0.8, return_match_value: bool = False) -> bool | tuple[bool, float]:
         """
-        Detect if a specific screen is visible using template matching
-        template_path: Path to the template image to match
-        threshold: Matching threshold (0-1)
-        """
-        screen = self.capture_game_screen()
-        if screen is None:
-            return False
-
-        template = cv2.imread(template_path)
-        if template is None:
-            return False
-
-        result = cv2.matchTemplate(screen, template, cv2.TM_CCOEFF_NORMED)
-        _, max_val, _, _ = cv2.minMaxLoc(result)
+        Detect if a specific screen is visible using template matching.
         
-        return max_val >= threshold 
+        Args:
+            template_path: Path to the template image
+            threshold: Minimum similarity threshold (0-1)
+            return_match_value: If True, returns tuple of (detected, match_value)
+            
+        Returns:
+            bool: True if screen is detected
+            tuple[bool, float]: If return_match_value is True, returns (detected, match_value)
+        """
+        try:
+            # Capture the game window
+            screenshot = self.capture_game_screen()
+            if screenshot is None:
+                return (False, 0.0) if return_match_value else False
+
+            # Load and preprocess the template
+            template = cv2.imread(template_path)
+            if template is None:
+                print(f"Error: Could not load template image from {template_path}")
+                return (False, 0.0) if return_match_value else False
+
+            # Convert both images to grayscale
+            screenshot_gray = cv2.cvtColor(screenshot, cv2.COLOR_BGR2GRAY)
+            template_gray = cv2.cvtColor(template, cv2.COLOR_BGR2GRAY)
+
+            # Perform template matching
+            result = cv2.matchTemplate(screenshot_gray, template_gray, cv2.TM_CCOEFF_NORMED)
+            min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(result)
+            
+            if return_match_value:
+                return max_val >= threshold, max_val
+            return max_val >= threshold
+
+        except Exception as e:
+            print(f"Error in detect_screen: {e}")
+            return (False, 0.0) if return_match_value else False
 
     def detect_screen_in_game(self, template_path: str, threshold: float = 0.8) -> bool:
         """
@@ -125,4 +150,16 @@ class GameDetectionService:
             
             return max_val >= threshold
         except:
+            return False
+
+    def send_f10_to_game(self) -> bool:
+        """Send F10 key to the game window to refresh mods"""
+        try:
+            # Send F10 key using keybd_event
+            win32api.keybd_event(win32con.VK_F10, 0, 0, 0)  # Key down
+            time.sleep(0.1)
+            win32api.keybd_event(win32con.VK_F10, 0, win32con.KEYEVENTF_KEYUP, 0)  # Key up
+            return True
+        except Exception as e:
+            print(f"Error sending F10 to game: {e}")
             return False

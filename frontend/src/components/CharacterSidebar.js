@@ -73,7 +73,7 @@ const renderIcon = (type, value, style = 'default') => {
   );
 };
 
-export default function CharacterSidebar({ onCharacterChange, selectedCharacter }) {
+export default function CharacterSidebar({ onCharacterChange, selectedCharacter, isInGameMode }) {
   const [viewMode, setViewMode] = useState(2); // 0: cards, 1: list, 2: grid
   const [characters, setCharacters] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -136,7 +136,9 @@ export default function CharacterSidebar({ onCharacterChange, selectedCharacter 
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 h-screen flex flex-col flex-none w-[15rem]">
+    <div className={`bg-white dark:bg-gray-800 h-screen flex flex-col flex-none ${
+      isInGameMode ? 'w-[8rem]' : 'w-[15rem]'
+    }`}>
       {/* Filters Header - Fixed */}
       <div className="pywebview-drag-region flex-none bg-white dark:bg-gray-800 py-2 z-10 flex justify-between items-center px-2 border-l border-gray-200 dark:border-gray-700">
         {/* Left side - Dropdowns */}
@@ -149,7 +151,9 @@ export default function CharacterSidebar({ onCharacterChange, selectedCharacter 
                 setShowElementDropdown(false);
                 setShowWeaponDropdown(false);
               }}
-              className="w-8 h-8 bg-gray-100 dark:bg-gray-700 rounded flex items-center justify-center"
+              className={`w-8 h-8 bg-gray-100 dark:bg-gray-700 rounded flex items-center justify-center ${
+                isInGameMode ? 'scale-75' : ''
+              }`}
             >
               <div className="relative w-5 h-5">
                 <FaStar className={`w-full h-full ${rarityFilter === "All" ? "text-gray-200" : rarityFilter === "5" ? "text-yellow-500" : "text-purple-400"}`} />
@@ -198,7 +202,9 @@ export default function CharacterSidebar({ onCharacterChange, selectedCharacter 
                 setShowElementDropdown(!showElementDropdown);
                 setShowWeaponDropdown(false);
               }}
-              className="w-8 h-8 bg-gray-100 dark:bg-gray-700 rounded flex items-center justify-center"
+              className={`w-8 h-8 bg-gray-100 dark:bg-gray-700 rounded flex items-center justify-center ${
+                isInGameMode ? 'scale-75' : ''
+              }`}
             >
               {renderIcon('element', elementFilter, 'header')}
             </button>
@@ -244,7 +250,9 @@ export default function CharacterSidebar({ onCharacterChange, selectedCharacter 
                 setShowWeaponDropdown(!showWeaponDropdown);
                 setShowElementDropdown(false);
               }}
-              className="w-8 h-8 bg-gray-100 dark:bg-gray-700 rounded flex items-center justify-center"
+              className={`w-8 h-8 bg-gray-100 dark:bg-gray-700 rounded flex items-center justify-center ${
+                isInGameMode ? 'scale-75' : ''
+              }`}
             >
               {renderIcon('weapon', weaponFilter, 'header')}
             </button>
@@ -284,7 +292,9 @@ export default function CharacterSidebar({ onCharacterChange, selectedCharacter 
           </div>
           <button
             onClick={() => setShowFavorites(!showFavorites)}
-            className="w-8 h-8 rounded flex items-center justify-center marker:bg-gray-100 dark:bg-gray-700"
+            className={`w-8 h-8 rounded flex items-center justify-center marker:bg-gray-100 dark:bg-gray-700 ${
+              isInGameMode ? 'scale-75' : ''
+            }`}
           >
             <IoHeartSharp className={`w-full h-full p-1 ${
               showFavorites ? 'text-red-500' : 'text-gray-200'
@@ -296,7 +306,9 @@ export default function CharacterSidebar({ onCharacterChange, selectedCharacter 
         <div className="flex gap-2 border-l pl-2 border-gray-200 dark:border-gray-700">
           <button
             onClick={cycleViewMode}
-            className="w-8 h-8 rounded flex items-center justify-center text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+            className={`w-8 h-8 rounded flex items-center justify-center text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 ${
+              isInGameMode ? 'scale-75' : ''
+            }`}
           >
             {getViewModeIcon()}
           </button>
@@ -313,7 +325,7 @@ export default function CharacterSidebar({ onCharacterChange, selectedCharacter 
           <div className={`px-2 pb-4 grid ${
             viewMode === 0 ? 'grid-cols-1 gap-4' : 
             viewMode === 1 ? 'grid-cols-1 gap-1' : 
-            'grid-cols-2 gap-4'
+            isInGameMode ? 'grid-cols-1 gap-2' : 'grid-cols-2 gap-4'
           }`}>
             {filteredCharacters.map((character) => (
               <button
@@ -323,7 +335,7 @@ export default function CharacterSidebar({ onCharacterChange, selectedCharacter 
                   selectedCharacter?.name === character.name
                     ? 'ring-2 ring-blue-500'
                     : 'hover:bg-gray-100 dark:hover:bg-gray-700'
-                }`}
+                } ${isInGameMode ? 'scale-90' : ''}`}
               >
                 {viewMode === 0 ? (
                   // Card view
