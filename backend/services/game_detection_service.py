@@ -100,3 +100,29 @@ class GameDetectionService:
         _, max_val, _, _ = cv2.minMaxLoc(result)
         
         return max_val >= threshold 
+
+    def detect_screen_in_game(self, template_path: str, threshold: float = 0.8) -> bool:
+        """
+        Detect if a specific screen is visible in the game window
+        template_path: Path to the template image to match
+        threshold: Matching threshold (0-1)
+        """
+        if not self.game_window_handle:
+            self.find_game_window()
+
+        if not self.game_window_handle:
+            return False
+
+        try:
+            x, y, width, height = win32gui.GetWindowRect(self.game_window_handle)
+            screenshot = pyautogui.screenshot(region=(x, y, width, height))
+            template = cv2.imread(template_path)
+            if template is None:
+                return False
+
+            result = cv2.matchTemplate(screenshot, template, cv2.TM_CCOEFF_NORMED)
+            _, max_val, _, _ = cv2.minMaxLoc(result)
+            
+            return max_val >= threshold
+        except:
+            return False

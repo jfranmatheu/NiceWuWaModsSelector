@@ -9,7 +9,7 @@ import Settings from '@/components/Settings';
 import { FaDownload, FaGamepad, FaCircle } from 'react-icons/fa';
 import useSettingsStore from '@/store/settingsStore';
 import TacetMarkLoader from '@/components/TacetMarkLoader';
-import useGameDetection from '@/hooks/useGameDetection';
+
 
 export default function Home() {
   const [selectedCategory, setSelectedCategory] = useState("Characters");
@@ -17,7 +17,6 @@ export default function Home() {
   const [showSettings, setShowSettings] = useState(false);
   const [context, setContext] = useState('installed');
   const {settings, loadSettings, isLoading} = useSettingsStore();
-  const { isGameRunning, isGameActive } = useGameDetection(null, 2000);
 
   useEffect(() => {
     // Add some delay to the loading screen
@@ -82,11 +81,11 @@ export default function Home() {
           {/* Game State Indicator */}
           <div className="flex items-center gap-2 text-sm">
             <div className="flex items-center gap-1">
-              <FaCircle className={`w-2 h-2 ${isGameRunning ? 'text-green-500' : 'text-red-500'}`} />
+              <FaCircle data-game-indicator className="w-2 h-2 text-red-500" />
               <span className="text-gray-600 dark:text-gray-400">Game</span>
             </div>
             <div className="flex items-center gap-1">
-              <FaCircle className={`w-2 h-2 ${isGameActive ? 'text-green-500' : 'text-yellow-500'}`} />
+              <FaCircle data-active-indicator className="w-2 h-2 text-yellow-500" />
               <span className="text-gray-600 dark:text-gray-400">Active</span>
             </div>
           </div>

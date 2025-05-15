@@ -15,6 +15,7 @@ from services.mod_service import ModService
 from services.gamebanana_service import GameBananaService
 from services.app_service import AppService
 from services.game_detection_service import GameDetectionService
+from services.game_state_monitor import GameStateMonitor
 from services.character_list import get_characters_list
 from services.categories import get_categories, get_character_categories, mount_character_subcategories
 
@@ -23,6 +24,11 @@ app_service = None
 mod_service = None
 gamebanana_service = None
 game_detection_service = None
+game_state_monitor = None
+
+# Global window instance
+window = None
+
 
 class ModsDirRequest(BaseModel):
     mods_dir: str
@@ -31,13 +37,16 @@ class ModsDirRequest(BaseModel):
 async def lifespan(app: FastAPI):
     """Initialize data on startup and cleanup on shutdown"""
     # Startup
+    global window
     await get_characters_list()
     await mount_character_subcategories()
-    global app_service, mod_service, gamebanana_service, game_detection_service
+    global app_service, mod_service, gamebanana_service, game_detection_service, game_state_monitor
     app_service = AppService.get()
     mod_service = ModService.get()
     gamebanana_service = GameBananaService.get()
     game_detection_service = GameDetectionService.get()
+    game_state_monitor = GameStateMonitor.get()
+    game_state_monitor.start_monitoring(window)
     yield
     # Shutdown
     pass
@@ -68,8 +77,7 @@ app.add_middleware(
 # Mount static files
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
-# Global window instance
-window = None
+
 
 def create_window():
     """Create the pywebview window"""
