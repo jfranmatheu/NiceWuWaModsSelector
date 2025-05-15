@@ -102,14 +102,20 @@ class ModService:
                         for mod_dir in char_dirpath.iterdir():
                             if not mod_dir.is_dir():
                                 continue
-
+                            
+                            enabled = not mod_dir.name.startswith("DISABLED_")
                             metadata_filepath = mod_dir / "metadata.json"
                             if metadata_filepath.exists():
                                 with open(metadata_filepath, 'r') as f:
                                     metadata = json.load(f)
+                                if metadata["enabled"] != enabled:
+                                    # FIX!
+                                    metadata["enabled"] = enabled
+                                    metadata["updated_at"] = int(datetime.now().timestamp())
+                                    with open(metadata_filepath, 'w') as f:
+                                        json.dump(metadata, f, indent=2)
                             else:
                                 # New mod! Possibly added manually.
-                                enabled = not mod_dir.name.startswith("DISABLED_")
                                 name = mod_dir.name if enabled else mod_dir.name[9:]
                                 images = _find_mode_images(mod_dir)
                                 current_time = int(datetime.now().timestamp())
@@ -136,14 +142,20 @@ class ModService:
                     for mod_dir in dirpath.iterdir():
                         if not mod_dir.is_dir():
                             continue
-
+                        
+                        enabled = not mod_dir.name.startswith("DISABLED_")
                         metadata_filepath = mod_dir / "metadata.json"
                         if metadata_filepath.exists():
                             with open(metadata_filepath, 'r') as f:
                                 metadata = json.load(f)
+                            if metadata["enabled"] != enabled:
+                                # FIX!
+                                metadata["enabled"] = enabled
+                                metadata["updated_at"] = int(datetime.now().timestamp())
+                                with open(metadata_filepath, 'w') as f:
+                                    json.dump(metadata, f, indent=2)
                         else:
                             # New mod! Possibly added manually.
-                            enabled = not mod_dir.name.startswith("DISABLED_")
                             name = mod_dir.name if enabled else mod_dir.name[9:]
                             images = _find_mode_images(mod_dir)
                             current_time = int(datetime.now().timestamp())
