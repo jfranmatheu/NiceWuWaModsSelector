@@ -196,19 +196,7 @@ export default function ModGrid({ category, character, context }) {
           {filteredMods.map((mod) => (
             <ModCard 
               key={mod.id} 
-              mod={{
-                id: mod.id,
-                metadata: {
-                  name: mod.name,
-                  preview: mod.preview_image,
-                  category: mod.category,
-                  character: mod.character,
-                  wuwa_version: mod.wuwa_version,
-                  enabled: mod.enabled,
-                  created_at: mod.created_at,
-                  updated_at: mod.updated_at
-                }
-              }}
+              mod={mod}
               isSelected={selectedModId === mod.id}
               onSelect={handleModSelect}
               uiSettings={settings.ui}

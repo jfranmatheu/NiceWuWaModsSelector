@@ -3,28 +3,47 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from pathlib import Path
-import json
 import os
-from datetime import datetime
-from typing import Optional, List, Dict
+from typing import Optional
 import webview
 import threading
-import sys
-import httpx
+from contextlib import asynccontextmanager
+from pydantic import BaseModel
 
-from models import Mod, ModCategory, ModMetadata, GameBananaInstallRequest
-from services.file_service import FileService, get_mods_dir
+from models import Mod, ModCategory, GameBananaInstallRequest, Character, CharacterResponse, GameBananaCategory
 from services.mod_service import ModService
 from services.gamebanana_service import GameBananaService
+from services.app_service import AppService
+from services.character_list import get_characters_list
+from services.categories import get_categories, get_character_categories, mount_character_subcategories
 
-file_service = FileService.get_instance()
-mod_service = ModService.get_instance()
-gamebanana_service = GameBananaService.get_instance()
+# Initialize services.
+app_service = None
+mod_service = None
+gamebanana_service = None
+
+class ModsDirRequest(BaseModel):
+    mods_dir: str
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Initialize data on startup and cleanup on shutdown"""
+    # Startup
+    await get_characters_list()
+    await mount_character_subcategories()
+    global app_service, mod_service, gamebanana_service
+    app_service = AppService.get()
+    mod_service = ModService.get()
+    gamebanana_service = GameBananaService.get()
+    yield
+    # Shutdown
+    pass
 
 app = FastAPI(
     title="NiceWuWaModsSelector API",
     description="API for managing Wuthering Waves mods.",
     version="0.1.0",
+    lifespan=lifespan
 )
 
 # Configure CORS
@@ -58,11 +77,12 @@ def create_window():
         width=1280,
         height=720,
         resizable=True,
-        min_size=(800, 600),
+        min_size=(920, 640),
         frameless=True,
         easy_drag=False,
         background_color="#000000"
     )
+
 
 @app.get("/")
 async def read_root():
@@ -90,6 +110,7 @@ async def get_preview(category: str, character: str, preview_path: str):
 @app.get("/api/mods")
 async def get_mods(category: Optional[ModCategory] = None, character: Optional[str] = None):
     """Get all mods, optionally filtered by category and/or character"""
+    global mod_service
     return await mod_service.get_mods(category, character)
 
 @app.post("/api/mods")
@@ -102,16 +123,19 @@ async def create_mod(
     preview_image: Optional[UploadFile] = File(None)
 ):
     """Add a new mod"""
+    global mod_service
     return await mod_service.add_mod(file, name, category, wuwa_version, character, preview_image)
 
 @app.delete("/api/mods/{mod_id}")
 async def delete_mod(mod_id: str):
     """Delete a mod"""
+    global mod_service
     return await mod_service.delete_mod(mod_id)
 
 @app.patch("/api/mods/{mod_id}/toggle")
 async def toggle_mod(mod_id: str):
     """Enable/disable a mod"""
+    global mod_service
     return await mod_service.toggle_mod(mod_id)
 
 # GameBanana Integration
@@ -120,18 +144,29 @@ async def install_from_gamebanana(request: GameBananaInstallRequest):
     """Install selected files from a GameBanana mod"""
     ## print("install_from_gamebanana: mod_data: ", request.modData)
     ## print("install_from_gamebanana: selected_files: ", request.selectedFiles)
+    global gamebanana_service
     return await gamebanana_service.install_from_url(request.modData, request.selectedFiles)
 
 # Settings
 @app.get("/api/settings")
-async def get_settings():
+async def get_settings() -> dict:
     """Get application settings"""
-    return await mod_service.get_settings()
+    global app_service
+    return app_service.settings
 
+# Verify Mods Directory
+@app.post("/api/mods/verify-mods-dir")
+async def verify_mods_dir(request: ModsDirRequest):
+    """Check if the mods directory exists"""
+    global app_service
+    return {"isValid": app_service.verify_mods_dir(request.mods_dir)}
+
+# Update Settings
 @app.put("/api/settings")
 async def update_settings(settings: dict):
     """Update application settings"""
-    return await mod_service.update_settings(settings)
+    global app_service
+    return app_service.update_settings(settings)
 
 @app.post("/api/browse-folder")
 async def browse_folder():
@@ -156,42 +191,30 @@ async def browse_folder():
 async def get_image(filepath: str):
     """Get an image from an arbitrary filepath"""
     try:
+        global app_service
         # Normalize the path to use the correct directory separator
         filepath = filepath.replace('/', os.sep).replace('\\', os.sep)
         
-        image_path = Path(filepath)
-        # Check if its relative to the mods folder
-        if image_path.is_relative_to(get_mods_dir()):
-            image_path = image_path.relative_to(get_mods_dir())
-
-        # Convert to absolute path and check if it's a valid image file
-        image_path = image_path.resolve()
+        # Construct the full path by joining with mods_dir
+        image_path = app_service.mods_dir / filepath
 
         # Security check: Ensure the file exists and is a file (not a directory)
         if not image_path.exists() or not image_path.is_file():
-            raise HTTPException(status_code=404, detail="Image not found")
+            raise HTTPException(status_code=404, detail=f"Image not found: {image_path}")
             
         # Security check: Ensure it's an image file
         allowed_extensions = {'.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp'}
         if image_path.suffix.lower() not in allowed_extensions:
             raise HTTPException(status_code=400, detail="Invalid file type. Only images are allowed.")
         
-        print(str(image_path))
         return FileResponse(str(image_path))
     except Exception as e:
-        print(str(image_path))
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.get("/api/characters")
+@app.get("/api/characters", response_model=CharacterResponse)
 async def get_characters():
-    """Get character data from prydwen.gg"""
-    try:
-        async with httpx.AsyncClient() as client:
-            response = await client.get('https://www.prydwen.gg/page-data/sq/d/3446734364.json')
-            response.raise_for_status()
-            return response.json()
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    """Get character data from cache or fetch if not available"""
+    return await get_characters_list()
 
 def start_server():
     """Start the FastAPI server"""

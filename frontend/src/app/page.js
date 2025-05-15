@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Sidebar from '@/components/Sidebar';
 import CharacterSidebar from '@/components/CharacterSidebar';
 import ModGrid from '@/components/ModGrid';
@@ -23,7 +23,7 @@ export default function Home() {
     setTimeout(() => {
       loadSettings();
       setIsLoadingFake(false);
-    }, 4000);
+    }, 1000);
   }, []);
 
   const onContextChange = (newContext) => {
@@ -87,7 +87,7 @@ export default function Home() {
         </div>
       </div>
 
-      {showSettings && (
+      {(showSettings || (settings && settings.mods_dir === '')) && (
         <Settings onClose={() => setShowSettings(false)} />
       )}
     </main>

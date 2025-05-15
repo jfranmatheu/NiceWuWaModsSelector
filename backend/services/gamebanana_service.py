@@ -7,26 +7,27 @@ import json
 import uuid
 from datetime import datetime
 
-from .file_service import FileService, get_mods_dir, get_user_data_dir
+from .app_service import AppService
+from .utils import FileUtils
+
 
 class GameBananaService:
     _instance = None
     
     @staticmethod
-    def get_instance():
+    def get():
         if GameBananaService._instance is None:
             GameBananaService._instance = GameBananaService()
         return GameBananaService._instance
 
     def __init__(self):
         self.base_url = "https://gamebanana.com"
-        self.api_base_url = "https://gamebanana.com/apiv11"
+        self.api_base_url = f"{self.base_url}/apiv11"
         self.headers = {
             "User-Agent": "NiceWuWaModsSelector/1.0"
         }
-        self.file_service = FileService.get_instance()
-        self.download_dir = get_user_data_dir() / 'downloaded_mods'
-        self.download_dir.mkdir(parents=True, exist_ok=True)
+        self.download_dir = AppService.get().appdata_dir / 'downloaded_mods'
+        FileUtils.ensure_directory(self.download_dir, parents=False)
 
     async def install_from_url(self, mod_data: Dict, selected_files: List[int]) -> Dict:
         """Install selected files from a GameBanana mod"""
@@ -40,7 +41,7 @@ class GameBananaService:
             mod_name = mod_data['_sName']
 
             # Create mod directory
-            mod_dir = get_mods_dir() / category
+            mod_dir = AppService.get().mods_dir / category
             if category == "Characters":
                 mod_dir = mod_dir / character
             mod_dir = mod_dir / mod_name
@@ -58,8 +59,8 @@ class GameBananaService:
                 await self.download_file(file_data['_sDownloadUrl'], download_path)
 
                 # Extract file
-                if self.file_service.is_valid_archive(download_path):
-                    self.file_service.extract_archive(download_path, mod_dir)
+                if FileUtils.is_valid_archive(download_path):
+                    FileUtils.extract_archive(download_path, mod_dir)
                     installed_files.append(file_data['_sFile'])
 
                 # Clean up downloaded file

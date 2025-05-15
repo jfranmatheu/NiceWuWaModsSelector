@@ -91,91 +91,7 @@ export default function CharacterSidebar({ onCharacterChange, selectedCharacter 
       try {
         const response = await fetch('http://localhost:8000/api/characters');
         const data = await response.json();
-        const charactersData = data.data.allContentfulWwCharacter.nodes
-          .filter(char => !char.name.startsWith('Rover'))
-          .map(char => ({
-            name: char.name,
-            icon: `https://www.prydwen.gg${char.smallImage.localFile.childImageSharp.gatsbyImageData.images.fallback.src}`,
-            cardImage: `https://www.prydwen.gg${char.cardImage.localFile.childImageSharp.gatsbyImageData.images.fallback.src}`,
-            weapon: char.weapon,
-            element: char.element,
-            rarity: char.rarity,
-            unitId: char.unitId,
-            id: char.id,
-            isNew: char.isNew,
-            upcoming: char.upcoming
-          }));
-        // Manually add the Rover Female and Male as they are not in the API
-        charactersData.push({
-          name: "Rover Female",
-          icon: "https://www.prydwen.gg/static/33d043cdcced39c96b08f210c4c15d4c/60b4d/rover_icon.webp",
-          cardImage: "https://www.prydwen.gg/static/ec3edb26e6df7f128ff8f9d1226c9a76/b26e2/rover_card.webp",
-          weapon: "Sword",
-          element: "All",
-          rarity: "5",
-          unitId: "0",
-          id: "rover-female",
-          isNew: false,
-          upcoming: false
-        });
-        charactersData.push({
-          name: "Rover Male",
-          icon: "https://www.prydwen.gg/static/33d043cdcced39c96b08f210c4c15d4c/60b4d/rover_icon.webp",
-          cardImage: "https://www.prydwen.gg/static/ec3edb26e6df7f128ff8f9d1226c9a76/b26e2/rover_card.webp",
-          weapon: "Sword",
-          element: "All",
-          rarity: "5",
-          unitId: "0",
-          id: "rover-male",
-          isNew: false,
-          upcoming: false
-        });
-        // Fix specific character names...
-        // "The Shorekeeper" -> "Shorekeeper"
-        charactersData.forEach(char => {
-          if (char.name === "The Shorekeeper") {
-            char.name = "Shorekeeper";
-          }
-        });
-        // Sort the characters by name and rarity.
-        // Characters with "5" rarity are at the top, then "4".
-        charactersData.sort((a, b) => {
-          if (a.rarity === "5" && b.rarity !== "5") {
-            return -1;
-          } else if (a.rarity !== "5" && b.rarity === "5") {
-            return 1;
-          } else if (a.rarity === "4" && b.rarity !== "4") {
-            return -1;
-          } else if (a.rarity !== "4" && b.rarity === "4") {
-            return 1;
-          } else {
-            return a.name.localeCompare(b.name);
-          }
-        });
-        // Fetch the characters categories from gamebanana
-        // We are interesting in the category ID to be able to fetch the mods from the character category.
-        // the category ID is '_idRow', the mod count in the category is '_nItemCount' the category url is '_sUrl' and the category name is '_sName' and it should match the character name.
-        const gb_response = await fetch("https://gamebanana.com/apiv11/Mod/Categories?_idCategoryRow=29524&_sSort=a_to_z&_bShowEmpty=true");
-        const gb_data = await gb_response.json();
-        console.log("gb_data", gb_data);
-        // Store the gamebanana category for each character in charactersData.
-        // gb_data is an array of objects, each object has a _sName property that should match the character name.
-        charactersData.forEach(char => {
-          for (const category of gb_data) {
-            if (category._sName === char.name) {
-              char.gamebanana = {
-                cat_id: category._idRow,
-                // cat_name: category._sName, // not needed
-                cat_url: category._sUrl,
-                cat_mod_count: category._nItemCount,
-                // cat_icon: category._sIcon, // not needed
-              };
-            }
-          }
-        });
-
-        console.log("charactersData", charactersData);
-        setCharacters(charactersData);
+        setCharacters(data.characters);
       } catch (error) {
         console.error('Error fetching characters:', error);
       } finally {
@@ -388,7 +304,7 @@ export default function CharacterSidebar({ onCharacterChange, selectedCharacter 
       </div>
 
       {/* Character Grid - Scrollable */}
-      <div className="flex-1 overflow-y-auto border-l border-gray-200 dark:border-gray-700">
+      <div className="flex-1 overflow-y-auto border-l border-gray-200 dark:border-gray-700 pt-2">
         {loading ? (
           <div className="flex justify-center items-center h-full">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 dark:border-white"></div>

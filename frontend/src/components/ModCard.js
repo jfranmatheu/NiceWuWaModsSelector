@@ -19,6 +19,11 @@ export default function ModCard({ mod, isSelected, onSelect, uiSettings }) {
     onSelect(mod.id);
   };
 
+  // Use preview prop for image src
+  const previewImage = mod.preview;
+  // Get caption from first image if available
+  const imageCaption = mod.images && mod.images.length > 0 ? mod.images[0].caption : null;
+
   return (
     <div
       className={`relative aspect-square w-full bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden transition-all duration-200 hover:shadow-lg cursor-pointer
@@ -30,12 +35,12 @@ export default function ModCard({ mod, isSelected, onSelect, uiSettings }) {
     >
       {/* Preview Image or Placeholder */}
       <div className={`absolute inset-0 transition-all duration-200
-        ${mod.metadata.enabled ? '' : 'grayscale-[0.7] saturate-[0.7]'}`}>
-        {mod.metadata.preview ? (
+        ${mod.enabled ? '' : 'grayscale-[0.7] saturate-[0.7]'}`}>
+        {previewImage ? (
           <ImageDisplay
-            filePath={mod.metadata.preview}
-            relative={true}
-            alt={mod.metadata.name}
+            filePath={previewImage}
+            relative={false}
+            alt={mod.name}
             fill
             className="object-cover"
             unoptimized
@@ -49,47 +54,45 @@ export default function ModCard({ mod, isSelected, onSelect, uiSettings }) {
 
       {/* Gradient Overlay */}
       <div className={`absolute inset-0 bg-gradient-to-b from-black/60 via-black/0 to-black/0 transition-opacity duration-200
-        ${mod.metadata.preview ? (isHovered ? 'opacity-100' : 'opacity-0') : 'opacity-100'}`}
+        ${previewImage ? (isHovered ? 'opacity-100' : 'opacity-0') : 'opacity-100'}`}
       />
 
       {/* Title - Fades in from top */}
       <div className={`absolute top-0 left-0 right-0 p-4 transition-all duration-200
-        ${mod.metadata.preview ? (
+        ${previewImage ? (
           uiSettings.use_hidden_card_title 
             ? (isHovered ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4')
             : 'opacity-100 translate-y-0'
         ) : 'opacity-100 translate-y-0'}`}
       >
         <h3 className="text-lg font-semibold text-white drop-shadow-md line-clamp-2">
-          {mod.metadata.name}
+          {mod.name}
         </h3>
+        {/*imageCaption && (
+          <div className="text-xs text-gray-200 mt-1 line-clamp-1">{imageCaption}</div>
+        )*/}
       </div>
 
       {/* Labels - Slides up from bottom */}
       <div className={`absolute bottom-0 left-0 right-0 p-4 transition-transform duration-200
-        ${mod.metadata.preview ? (isHovered ? 'translate-y-0' : 'translate-y-full') : 'translate-y-0'}`}
+        ${previewImage ? (isHovered ? 'translate-y-0' : 'translate-y-full') : 'translate-y-0'}`}
       >
         <div className="flex flex-wrap gap-2">
           {uiSettings.show_labels.category && (
             <span className="px-2 py-1 text-sm bg-blue-500/80 backdrop-blur-sm text-white rounded">
-              {mod.metadata.category}
+              {mod.category}
             </span>
           )}
-          {uiSettings.show_labels.character && mod.metadata.character && (
+          {uiSettings.show_labels.character && mod.character && (
             <span className="px-2 py-1 text-sm bg-purple-500/80 backdrop-blur-sm text-white rounded">
-              {mod.metadata.character}
-            </span>
-          )}
-          {uiSettings.show_labels.wuwa_version && (
-            <span className="px-2 py-1 text-sm bg-green-500/80 backdrop-blur-sm text-white rounded">
-              {mod.metadata.wuwa_version}
+              {mod.character}
             </span>
           )}
         </div>
       </div>
 
       {/* Enabled Indicator */}
-      {mod.metadata.enabled && (
+      {mod.enabled && (
         <div className="absolute top-2 right-2 w-3 h-3 bg-green-500 rounded-full ring-2 ring-white dark:ring-gray-800" />
       )}
     </div>

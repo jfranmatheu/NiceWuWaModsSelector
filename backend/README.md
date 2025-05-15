@@ -18,7 +18,7 @@ The backend is built with Python 3.11 and FastAPI, providing a RESTful API for t
 ### Settings
 - `GET /api/settings` - Get application settings
 - `PUT /api/settings` - Update settings
-  - Body: `{ mods_folder: string, default_category: string, default_wuwa_version: string }`
+  - Body: `{ mods_dir: string}`
 - `POST /api/browse-folder` - Open folder browser dialog
   - Returns: `{ folder: string }`
 
@@ -44,9 +44,7 @@ class Mod(BaseModel):
 ### Settings
 ```python
 class Settings(BaseModel):
-    mods_folder: str
-    default_category: str
-    default_wuwa_version: str
+    mods_dir: str
 ```
 
 ## File Structure
@@ -64,7 +62,7 @@ backend/
 │       ├── __init__.py
 │       ├── mod_service.py
 │       ├── gamebanana_service.py
-│       └── file_service.py
+│       └── app_service.py
 ├── requirements.txt
 └── README.md
 ```

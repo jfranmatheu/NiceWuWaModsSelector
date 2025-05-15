@@ -4,27 +4,62 @@ import { useState, useEffect } from 'react';
 import useSettingsStore from '@/store/settingsStore';
 
 export default function Settings({ onClose }) {
-  const { settings, loadSettings, updateSettings, isLoading, error } = useSettingsStore();
+  const { settings, updateSettings, isLoading, error } = useSettingsStore();
   const [formData, setFormData] = useState({
-    mods_folder: '',
-    default_category: 'Characters',
-    default_wuwa_version: '1.0.0'
+    mods_dir: '',
+    ui: {
+      use_hidden_card_title: true,
+      show_labels: {
+        category: false,
+        character: false,
+        wuwa_version: true
+      }
+    }
   });
 
   useEffect(() => {
-    loadSettings();
-  }, [loadSettings]);
-
-  useEffect(() => {
     if (settings) {
-      setFormData(settings);
+      setFormData({
+        mods_dir: settings.mods_dir || '',
+        ui: {
+          use_hidden_card_title: settings.ui?.use_hidden_card_title ?? true,
+          show_labels: {
+            category: settings.ui?.show_labels?.category ?? false,
+            character: settings.ui?.show_labels?.character ?? false,
+            wuwa_version: settings.ui?.show_labels?.wuwa_version ?? true
+          }
+        }
+      });
     }
   }, [settings]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    await updateSettings(formData);
-    onClose();
+    try {
+      const response = await fetch('http://localhost:8000/api/mods/verify-mods-dir', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ mods_dir: formData.mods_dir })
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to verify mods directory');
+      }
+      
+      const { isValid } = await response.json();
+      if (!isValid) {
+        alert('Invalid mods directory. Please select a valid WWMI mods directory.');
+        return;
+      }
+
+      await updateSettings(formData);
+      onClose();
+    } catch (error) {
+      console.error('Error verifying mods directory:', error);
+      alert('Error verifying mods directory. Please try again.');
+    }
   };
 
   const handleBrowseFolder = async () => {
@@ -35,7 +70,9 @@ export default function Settings({ onClose }) {
       if (!response.ok) throw new Error('Failed to browse folder');
       
       const { folder } = await response.json();
-      setFormData(prev => ({ ...prev, mods_folder: folder }));
+      if (folder) {
+        setFormData(prev => ({ ...prev, mods_dir: folder }));
+      }
     } catch (error) {
       console.error('Error browsing folder:', error);
     }
@@ -68,8 +105,8 @@ export default function Settings({ onClose }) {
             <div className="flex gap-2">
               <input
                 type="text"
-                value={formData.mods_folder}
-                onChange={(e) => setFormData(prev => ({ ...prev, mods_folder: e.target.value }))}
+                value={formData.mods_dir}
+                onChange={(e) => setFormData(prev => ({ ...prev, mods_dir: e.target.value }))}
                 className="flex-1 p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                 placeholder="Select mods folder"
               />
@@ -81,36 +118,6 @@ export default function Settings({ onClose }) {
                 Browse
               </button>
             </div>
-          </div>
-
-          <div className="mb-4">
-            <label className="block text-gray-700 dark:text-gray-300 mb-2">
-              Default Category
-            </label>
-            <select
-              value={formData.default_category}
-              onChange={(e) => setFormData(prev => ({ ...prev, default_category: e.target.value }))}
-              className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-            >
-              <option value="Characters">Characters</option>
-              <option value="NPCs">NPCs</option>
-              <option value="Weapons">Weapons</option>
-              <option value="UI">UI</option>
-              <option value="Other">Other</option>
-            </select>
-          </div>
-
-          <div className="mb-6">
-            <label className="block text-gray-700 dark:text-gray-300 mb-2">
-              Default Wuthering Waves Version
-            </label>
-            <input
-              type="text"
-              value={formData.default_wuwa_version}
-              onChange={(e) => setFormData(prev => ({ ...prev, default_wuwa_version: e.target.value }))}
-              className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-              placeholder="e.g., 1.0.0"
-            />
           </div>
 
           <div className="flex justify-end gap-4">

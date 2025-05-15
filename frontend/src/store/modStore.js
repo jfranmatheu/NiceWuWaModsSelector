@@ -2,13 +2,20 @@ import { create } from 'zustand';
 
 const API_URL = 'http://localhost:8000/api';
 
+const GAMEBANANA_IMAGE_BASE = 'https://images.gamebanana.com/img/ss/mods/';
 
-const fetch_preview_image = (category, character, image_path) => {
-  // Ensure the image path uses forward slashes and starts with a slash
-  const normalizedPath = image_path.replace(/\\/g, '/');
-  return `${API_URL}/preview/${category}/${character}/${normalizedPath}`;
-}
-
+const getPreviewUrl = (mod) => {
+  if (!mod.images || mod.images.length === 0) return null;
+  const img = mod.images[0];
+  if (img.local) {
+    // Use backend API to fetch local image
+    // The filename should already be relative to the mods directory
+    return `${API_URL}/image/${encodeURIComponent(img.filename)}`;
+  } else {
+    // Use GameBanana base URL
+    return `${GAMEBANANA_IMAGE_BASE}${img.filename}`;
+  }
+};
 
 const useModStore = create((set, get) => ({
   mods: [],
@@ -29,7 +36,7 @@ const useModStore = create((set, get) => ({
       // Transform the mods data to include preview URLs
       const transformedMods = mods.map(mod => ({
         ...mod,
-        preview: mod.preview_image // ? fetch_preview_image(mod.category, mod.character, mod.preview_image) : null
+        preview: getPreviewUrl(mod),
       }));
       console.log(transformedMods.map(mod => mod.preview));
       set({ mods: transformedMods, isLoading: false });
@@ -51,7 +58,7 @@ const useModStore = create((set, get) => ({
       // Transform the new mod data to include preview URL
       const transformedMod = {
         ...newMod,
-        preview: newMod.preview_image // ? await fetch_preview_image(newMod.category, newMod.character, newMod.preview_image) : null
+        preview: getPreviewUrl(newMod),
       };
       set(state => ({ mods: [...state.mods, transformedMod], isLoading: false }));
     } catch (error) {
@@ -89,7 +96,7 @@ const useModStore = create((set, get) => ({
       // Transform the updated mod data to include preview image data
       const transformedMod = {
         ...updatedMod,
-        preview: updatedMod.preview_image // ? await fetch_preview_image(updatedMod.category, updatedMod.character, updatedMod.preview_image) : null
+        preview: getPreviewUrl(updatedMod),
       };
       set(state => ({
         mods: state.mods.map(mod => 

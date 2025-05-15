@@ -4,9 +4,7 @@ const API_URL = 'http://localhost:8000/api';
 
 const useSettingsStore = create((set) => ({
   settings: {
-    mods_folder: '',
-    default_category: 'Characters',
-    default_wuwa_version: '1.0.0',
+    mods_dir: '',
     ui: {
       use_hidden_card_title: true,
       show_labels: {
@@ -16,7 +14,7 @@ const useSettingsStore = create((set) => ({
       }
     }
   },
-  isLoading: false,
+  isLoading: true,
   error: null,
 
   loadSettings: async () => {
@@ -47,7 +45,6 @@ const useSettingsStore = create((set) => ({
         }),
       });
       if (!response.ok) throw new Error('Failed to update settings');
-      
       const settings = await response.json();
       set({ settings, isLoading: false });
     } catch (error) {

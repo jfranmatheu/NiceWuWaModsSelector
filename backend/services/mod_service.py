@@ -5,115 +5,96 @@ from datetime import datetime
 from pathlib import Path
 from typing import Optional, List
 from fastapi import UploadFile, HTTPException
-import shutil
 import json
 import uuid
 
-from models import Mod, ModCategory, ModMetadata, Settings, ArchiveType
-from .file_service import FileService, load_settings, save_settings, get_mods_dir
+from models import Mod, ModCategory, Settings, ArchiveType, Image, InstalledVersion, GameBananaData
+from .categories import get_categories, get_character_categories
+from .character_list import get_characters_list
+from .app_service import AppService
+from .utils import FileUtils
 
-
-categories = {
-    "Characters",
-    "NPCs",
-    "Weapons",
-    "UI",
-    "Other"
-}
-
-characters = {
-  'Alto',
-  'Baizhi',
-  'Brant',
-  'Calcharo',
-  'Camellya',
-  'Cantarella',
-  'Carlotta',
-  'Changli',
-  'Chixia',
-  'Danjin',
-  'Encore',
-  'Jianxin',
-  'Jinhsi',
-  'Jiyan',
-  'Lingyang',
-  'Lumi',
-  'Mortefi',
-  'Pheobe',
-  'Roccia',
-  'Rover(F)',
-  'Rover(M)',
-  'Sanhua',
-  'Shorekeeper',
-  'Taoqi',
-  'Verina',
-  'Xiangli Yao',
-  'Yangyang',
-  'Yinlin',
-  'Youhu',
-  'Yuanwu',
-  'Zani',
-  'Zhezhi',
-}
-
+def _find_mode_images(mode_dirpath: Path) -> List[Image]:
+    """Find all images for a mod"""
+    images = []
+    for file in mode_dirpath.iterdir():
+        if file.suffix.lower() in ['.png', '.jpg', '.jpeg', '.webp', '.gif']:
+            # Store the path relative to the mods directory
+            relative_path = file.relative_to(AppService.get().mods_dir)
+            images.append(Image(
+                local=True,
+                filename=str(relative_path),
+                caption=None
+            ))
+    return images
 
 class ModService:
     _instance = None
 
     @staticmethod
-    def get_instance():
+    def get():
         if ModService._instance is None:
             ModService._instance = ModService()
         return ModService._instance
 
     def __init__(self):
-        self.file_service = FileService.get_instance()
-        self.settings = load_settings()
-        self.mods_file = Path(get_mods_dir()) / "mods.json"
+        self.init()
+
+    def init(self):
+        self.mods_file = AppService.get().mods_dir / "mods.json"
         self.mods_metadata = {}
         self.mods_metadata_id: dict[str, dict] = {}
-        self._init_mods_file()
+        self.load_mods_metadata()
 
-    def _init_mods_file(self):
+    def get_mod_metadata_by_id(self, mod_id: str) -> dict:
+        return self.mods_metadata_id.get(mod_id, None)
+
+    def get_mods_metadata(self, category: ModCategory, character: Optional[str] = None) -> List[dict]:
+        if category == "Characters":
+            return self.mods_metadata.get(category, {}).get(character, [])
+        else:
+            return self.mods_metadata.get(category, [])
+
+    def load_mods_metadata(self, force_reload: bool = False):
         """Ensure mods.json exists and contains all mods from the filesystem"""
-        try:
+        if self.mods_file.exists() and not force_reload:
+            # Load mods metadata from mods.json.
+            with open(self.mods_file, 'r') as f:
+                self.mods_metadata = json.load(f)
+            # Fill up self.mods_metadata_id.
+            for category, mods in self.mods_metadata.items():
+                if category == "Characters":
+                    for character, char_mods in mods.items():
+                        for mod in char_mods:
+                            self.mods_metadata_id[mod["id"]] = mod
+                else:
+                    for mod in mods:
+                        self.mods_metadata_id[mod["id"]] = mod
+        else:
+            # Scan mods directory and create mods.json if it doesn't exist or if force_reload is True.
             all_mods_metadata = {}  # by category.
-            all_mods_dir = get_mods_dir()
-            
+            all_mods_dir = AppService.get().mods_dir
+
             # Initialize the nested structure
-            for category in categories:
+            for category in get_categories():
                 if category == "Characters":
                     all_mods_metadata[category] = {}
-                    for character in characters:
+                    for character in get_character_categories():
                         all_mods_metadata[category][character] = []
                 else:
                     all_mods_metadata[category] = []
 
-            def _find_mode_preview(mode_dirpath: Path) -> Optional[str]:
-                """Find the preview image for a mod"""
-                # First check if its name is "preview" followed by an image extension.
-                for file in mode_dirpath.iterdir():
-                    if file.name.lower().startswith("preview") and file.suffix.lower() in ['.png', '.jpg', '.jpeg', '.webp', '.gif']:
-                        return str(file.relative_to(all_mods_dir))
-                # If none is found, check if there is a file in the same directory with an image extension.
-                for file in mode_dirpath.iterdir():
-                    if file.suffix.lower() in ['.png', '.jpg', '.jpeg', '.webp', '.gif']:
-                        return str(file.relative_to(all_mods_dir))
-                return None
-
             # Ensure base directories exist
             self.mods_file.parent.mkdir(parents=True, exist_ok=True)
-            
-            ## print("Scanning for mods...", all_mods_dir)
-            
+
             # Scan through all categories
-            for category in categories:
+            for category in get_categories():
                 dirpath: Path = all_mods_dir / category
                 if not dirpath.exists():
                     dirpath.mkdir()
 
                 if category == "Characters":
-                    for character in characters:
+                    for character in get_character_categories():
                         char_dirpath = dirpath / character
                         if not char_dirpath.exists():
                             char_dirpath.mkdir()
@@ -130,18 +111,19 @@ class ModService:
                                 # New mod! Possibly added manually.
                                 enabled = not mod_dir.name.startswith("DISABLED_")
                                 name = mod_dir.name if enabled else mod_dir.name[9:]
-                                preview_image = _find_mode_preview(mod_dir)
+                                images = _find_mode_images(mod_dir)
+                                current_time = int(datetime.now().timestamp())
                                 metadata = {
                                     "id": uuid.uuid4().hex,
                                     "name": name,
-                                    "filename": name,
-                                    "wuwa_version": "2.1.0", # use wuwa_version from user settings or latest one?
                                     "category": category,
                                     "character": character,
+                                    "images": [img.model_dump() for img in images],
+                                    "created_at": current_time,
+                                    "updated_at": current_time,
                                     "enabled": enabled,
-                                    "created_at": datetime.now().isoformat(),
-                                    "updated_at": datetime.now().isoformat(),
-                                    "preview_image": preview_image,
+                                    "installed_versions": [],
+                                    "gamebanana": None,
                                 }
                                 # Write the metadata to the metadata.json file.
                                 with open(metadata_filepath, 'w') as f:
@@ -163,17 +145,19 @@ class ModService:
                             # New mod! Possibly added manually.
                             enabled = not mod_dir.name.startswith("DISABLED_")
                             name = mod_dir.name if enabled else mod_dir.name[9:]
-                            preview_image = _find_mode_preview(mod_dir)
+                            images = _find_mode_images(mod_dir)
+                            current_time = int(datetime.now().timestamp())
                             metadata = {
                                 "id": uuid.uuid4().hex,
                                 "name": name,
-                                "filename": name,
                                 "category": category,
                                 "character": None,
+                                "images": [img.model_dump() for img in images],
+                                "created_at": current_time,
+                                "updated_at": current_time,
                                 "enabled": enabled,
-                                "created_at": datetime.now().isoformat(),
-                                "updated_at": datetime.now().isoformat(),
-                                "preview_image": preview_image,
+                                "installed_versions": [],
+                                "gamebanana": None,
                             }
                             # Write the metadata to the metadata.json file.
                             with open(metadata_filepath, 'w') as f:
@@ -183,24 +167,9 @@ class ModService:
                         self.mods_metadata_id[metadata["id"]] = metadata
 
             # Write all mods to mods.json
-            with open(self.mods_file, 'w') as f:
-                json.dump(all_mods_metadata, f, indent=2)
-                
-            self.mods_metadata = all_mods_metadata
-            
-            ## print(f"Initialized mods file with {len(all_mods_metadata)} categories")
-            for category, mods in all_mods_metadata.items():
-                if category == "Characters":
-                    for character, char_mods in mods.items():
-                        print(f"  {category}/{character}: {len(char_mods)} mods")
-                else:
-                    print(f"  {category}: {len(mods)} mods")
+            FileUtils.write_json(self.mods_file, all_mods_metadata)
 
-        except Exception as e:
-            print(f"Error initializing mods file: {str(e)}")
-            # Create an empty mods.json if there was an error
-            with open(self.mods_file, 'w') as f:
-                json.dump({}, f)
+            self.mods_metadata = all_mods_metadata
 
     async def get_mods(self, category: Optional[ModCategory] = None, character: Optional[str] = None) -> List[Mod]:
         """Get all mods, optionally filtered by category and/or character"""
@@ -208,12 +177,12 @@ class ModService:
         try:
             if category is None:
                 mods = []
-            elif category not in categories:
+            elif category not in get_categories():
                 raise HTTPException(status_code=400, detail="Invalid category")
             elif category == "Characters":
                 if character is None:
                     mods = []
-                elif character not in characters:
+                elif character not in get_character_categories():
                     raise HTTPException(status_code=400, detail="Invalid character")
                 else:
                     if category not in self.mods_metadata:
@@ -239,47 +208,60 @@ class ModService:
         file: UploadFile,
         name: str,
         category: ModCategory,
-        wuwa_version: str,
         character: Optional[str] = None,
         preview_image: Optional[UploadFile] = None
     ) -> Mod:
         """Add a new mod"""
-        file_service = FileService.get_instance()
+        app_service = AppService.get()
         try:
-            # Save mod file
-            mod_path = get_mods_dir() / file.filename
-            await file_service.save_upload_file(file, mod_path)
+            # Get mod directory path and create it if it doesn't exist.
+            mod_dirpath = app_service.mods_dir / category
+            if character:
+                mod_dirpath = mod_dirpath / character
+            mod_dirpath = mod_dirpath / name
+            FileUtils.ensure_directory(mod_dirpath, parents=False)
 
-            # Save preview image if provided (in mods folder)
-            preview_path = None
+            # Save mod file
+            await app_service.save_upload_file(file, mod_dirpath)
+
+            # Save preview image if provided
+            images = []
             if preview_image:
                 preview_filename = f"preview{Path(preview_image.filename).suffix}"
-                preview_path = mod_path / preview_filename
-                await file_service.save_upload_file(preview_image, preview_path)
+                preview_path = mod_dirpath / preview_filename
+                await app_service.save_upload_file(preview_image, preview_path)
+                images.append(Image(
+                    local=True,
+                    filename=str(preview_path.relative_to(app_service.mods_dir)),
+                    caption=None
+                ))
 
-            # Create mod object
-            mod = Mod(
-                id=str(datetime.now().timestamp()),
-                name=name,
-                filename=file.filename,
-                category=category,
-                character=character,
-                wuwa_version=wuwa_version,
-                preview_image=str(preview_path) if preview_path else None,
-                created_at=datetime.now(),
-                updated_at=datetime.now(),
-                enabled=True
-            )
-            
-            # Save to mods.json
-            with open(self.mods_file, 'r') as f:
-                mods = json.load(f)
-            
-            mods.append(mod.dict())
-            
-            with open(self.mods_file, 'w') as f:
-                json.dump(mods, f, indent=2, default=str)
-            
+            # Fill metadata and create Mod object
+            current_time = int(datetime.now().timestamp())
+            mod_metadata = {
+                "id": str(uuid.uuid4()),
+                "name": name,
+                "category": category,
+                "character": character,
+                "images": [img.model_dump() for img in images],
+                "created_at": current_time,
+                "updated_at": current_time,
+                "enabled": False,
+                "installed_versions": [],
+                "gamebanana": None,
+            }
+            mod = Mod(**mod_metadata)
+
+            # Write metadata.json
+            FileUtils.write_json(mod_dirpath / "metadata.json", mod_metadata)
+
+            # Update mods metadata.
+            if character:
+                self.mods_metadata[category][character].append(mod_metadata)
+            else:
+                self.mods_metadata[category].append(mod_metadata)
+            self.mods_metadata_id[mod_metadata["id"]] = mod_metadata
+
             return mod
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Error adding mod: {str(e)}")
@@ -323,12 +305,10 @@ class ModService:
             if not mod:
                 print(f"Mod not found: {mod_id}")
                 raise HTTPException(status_code=404, detail="Mod not found")
-            
-            ## print(f"Mod found: {mod}")
 
             # Toggle enabled state
             mod['enabled'] = not mod['enabled']
-            mod['updated_at'] = datetime.now().isoformat()
+            mod['updated_at'] = int(datetime.now().timestamp())
             
             if mod['character']:
                 mod_dirpath = get_mods_dir() / mod['category'] / mod['character']
@@ -338,18 +318,15 @@ class ModService:
             if not mod_dirpath.exists():
                 print(f"Mod directory not found: {mod_dirpath}")
                 raise HTTPException(status_code=404, detail="Mod directory not found")
-            
-            ## print(f"Mod directory found: {mod_dirpath}")
 
             # Add/Remove 'DISABLED_' prefix if enabled state changed.
-            # NOTE: mod['filename'] DOES NOT include the 'DISABLED_' prefix.
             if mod['enabled']:
-                os.rename(mod_dirpath / ('DISABLED_' + mod['filename']), mod_dirpath / mod['filename'])
+                os.rename(mod_dirpath / ('DISABLED_' + mod['name']), mod_dirpath / mod['name'])
             else:
-                os.rename(mod_dirpath / mod['filename'], mod_dirpath / ('DISABLED_' + mod['filename']))
+                os.rename(mod_dirpath / mod['name'], mod_dirpath / ('DISABLED_' + mod['name']))
 
             with open(mod_dirpath / "metadata.json", 'w') as f:
-                json.dump(mod, f, indent=2, default=str)
+                json.dump(mod, f, indent=2)
 
             print(f"Toggled mod: {mod_id}")
 
@@ -357,16 +334,3 @@ class ModService:
         except Exception as e:
             print(f"Error toggling mod: {str(e)}")
             raise HTTPException(status_code=500, detail=f"Error toggling mod: {str(e)}")
-
-    async def get_settings(self) -> dict:
-        """Get application settings"""
-        return load_settings()
-
-    async def update_settings(self, settings: dict) -> dict:
-        """Update application settings"""
-        try:
-            save_settings(settings)
-            self.settings = settings
-            return settings
-        except Exception as e:
-            raise HTTPException(status_code=500, detail=f"Error updating settings: {str(e)}")

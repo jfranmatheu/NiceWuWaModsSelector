@@ -14,7 +14,7 @@ const ImageDisplay = ({ filePath, relative = false, alt = 'Image', className = '
   }
   else{
     // Encode the filepath to handle special characters
-    absolutePath = relative ? `${settings.mods_folder}/${filePath}` : filePath;
+    absolutePath = relative ? `${settings.mods_dir}/${filePath}` : filePath;
     encodedPath = encodeURIComponent(absolutePath);
     imageUrl = `http://localhost:8000/api/image/${encodedPath}`;
   }
