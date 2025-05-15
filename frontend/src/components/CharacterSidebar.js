@@ -331,17 +331,21 @@ export default function CharacterSidebar({ onCharacterChange, selectedCharacter,
               <button
                 key={character.id}
                 onClick={() => onCharacterChange(character)}
-                className={`relative flex flex-col items-center rounded-lg overflow-hidden transition-colors ${
+                className={`relative flex flex-col items-center rounded-lg overflow-hidden transition-all duration-200 ${
                   selectedCharacter?.name === character.name
                     ? 'ring-2 ring-blue-500'
-                    : 'hover:bg-gray-100 dark:hover:bg-gray-700'
+                    : 'hover:bg-gray-100 dark:hover:bg-gray-700 border-2 border-gray-500 hover:border-gray-200'
                 } ${isInGameMode ? 'scale-90' : ''}`}
               >
                 {viewMode === 0 ? (
                   // Card view
                   <div className="w-full">
                     <div 
-                      className="relative w-full aspect-[3/4]"
+                      className={`relative w-full aspect-[3/4] transition-all duration-200 ${
+                        selectedCharacter?.name === character.name 
+                          ? 'saturate-100' 
+                          : 'saturate-[0.6] brightness-90 hover:saturate-100 hover:brightness-100'
+                      }`}
                       style={{
                         backgroundColor: character.rarity === "5" ? "#ccbf48" : "#9b68d4"
                       }}
@@ -373,7 +377,11 @@ export default function CharacterSidebar({ onCharacterChange, selectedCharacter,
                   // List view
                   <div className="w-full flex items-center gap-4 p-2 pr-0">
                     <div 
-                      className="relative w-20 h-20 rounded-lg overflow-hidden flex-shrink-0"
+                      className={`relative w-20 h-20 rounded-lg overflow-hidden flex-shrink-0 transition-all duration-200 ${
+                        selectedCharacter?.name === character.name 
+                          ? 'saturate-100' 
+                          : 'saturate-[0.6] brightness-90 hover:saturate-100 hover:brightness-100'
+                      }`}
                       style={{
                         backgroundColor: character.rarity === "5" ? "#ccbf48" : "#9b68d4"
                       }}
@@ -397,7 +405,11 @@ export default function CharacterSidebar({ onCharacterChange, selectedCharacter,
                   // Grid view
                   <div className="w-full aspect-square">
                     <div 
-                      className="relative w-full h-full rounded-lg overflow-hidden"
+                      className={`relative w-full h-full rounded-lg overflow-hidden transition-all duration-200 ${
+                        selectedCharacter?.name === character.name 
+                          ? 'saturate-100' 
+                          : 'saturate-[0.6] brightness-90 hover:saturate-100 hover:brightness-100'
+                      }`}
                       style={{
                         backgroundColor: character.rarity === "5" ? "#ccbf48" : "#9b68d4"
                       }}
@@ -406,7 +418,7 @@ export default function CharacterSidebar({ onCharacterChange, selectedCharacter,
                         src={character.icon}
                         alt={character.name}
                         fill
-                        className="object-cover"
+                        className={`transition-all duration-200 object-cover ${selectedCharacter?.name === character.name ? 'scale-110' : ''}`}
                       />
                       <div className="absolute top-1 left-1 right-1 flex justify-between">
                         {renderIcon('element', character.element, 'grid')}
