@@ -18,21 +18,25 @@ const useSettingsStore = create((set) => ({
   error: null,
 
   loadSettings: async () => {
-    set({ isLoading: true, error: null });
     try {
       const response = await fetch(`${API_URL}/settings`);
       if (!response.ok) throw new Error('Failed to load settings');
       
       const settings = await response.json();
-      console.log("settings", settings);
-      set({ settings, isLoading: false });
+      set({ 
+        settings, 
+        isLoading: false,
+        error: null 
+      });
     } catch (error) {
-      set({ error: error.message, isLoading: false });
+      set({ 
+        error: error.message, 
+        isLoading: false 
+      });
     }
   },
 
   updateSettings: async (newSettings) => {
-    set({ isLoading: true, error: null });
     try {
       const response = await fetch(`${API_URL}/settings`, {
         method: 'PUT',

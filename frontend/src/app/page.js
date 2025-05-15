@@ -20,29 +20,31 @@ export default function Home() {
 
   useEffect(() => {
     // Add some delay to the loading screen
-    setTimeout(() => {
-      loadSettings();
-      setIsLoadingFake(false);
-    }, 1000);
+    loadSettings();
   }, []);
 
   const onContextChange = (newContext) => {
     setContext(newContext);
   };
 
-  if (isLoadingFake || isLoading) {
-    return (
-      <div className="flex flex-col items-center justify-center h-screen bg-black/80">
-        <TacetMarkLoader size={96} />
-        <span className="mt-4 text-white text-lg font-semibold tracking-widest animate-pulse">
-          Loading...
-        </span>
-      </div>
-    );
-  }
-
   return (
     <main className="flex h-screen bg-gray-100 dark:bg-gray-900 overflow-hidden rounded-lg border-solid border-2 border-slate-200 dark:border-slate-600">
+      {(isLoading) && (
+        <div className="fixed inset-0 flex flex-col items-center justify-center h-screen bg-black/95 z-50">
+          <TacetMarkLoader size={144} />
+          <div className="mt-4">
+            <div className="loading-text">
+              <span className="loading-text-words">L</span>
+              <span className="loading-text-words">O</span>
+              <span className="loading-text-words">A</span>
+              <span className="loading-text-words">D</span>
+              <span className="loading-text-words">I</span>
+              <span className="loading-text-words">N</span>
+              <span className="loading-text-words">G</span>
+            </div>
+          </div>
+        </div>
+      )}
       <Sidebar onCategoryChange={setSelectedCategory} selectedCategory={selectedCategory} setShowSettings={setShowSettings} />
       
       {selectedCategory === 'Characters' && (

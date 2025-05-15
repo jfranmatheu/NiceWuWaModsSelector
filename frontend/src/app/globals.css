@@ -2,6 +2,8 @@
 @tailwind components;
 @tailwind utilities;
 
+@import url(https://fonts.googleapis.com/css?family=Quattrocento+Sans);
+
 :root {
   --foreground-rgb: 0, 0, 0;
   --background-rgb: 255, 255, 255;
@@ -121,4 +123,48 @@ body {
 
 .badge-info {
   @apply bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100;
+}
+
+/* Loading animation */
+
+.loading-text {
+  text-align: center;
+}
+
+.loading-text-words {
+  display: inline-block;
+  margin: 0 5px;
+  color: #fff;
+  font-family: 'Quattrocento Sans', sans-serif;
+  transform-origin: center;
+}
+
+.loading-text-words:nth-child(1) { animation: pulse-text 1.5s 0s infinite ease-in-out alternate; }
+.loading-text-words:nth-child(2) { animation: pulse-text 1.5s 0.2s infinite ease-in-out alternate; }
+.loading-text-words:nth-child(3) { animation: pulse-text 1.5s 0.4s infinite ease-in-out alternate; }
+.loading-text-words:nth-child(4) { animation: pulse-text 1.5s 0.6s infinite ease-in-out alternate; }
+.loading-text-words:nth-child(5) { animation: pulse-text 1.5s 0.8s infinite ease-in-out alternate; }
+.loading-text-words:nth-child(6) { animation: pulse-text 1.5s 1.0s infinite ease-in-out alternate; }
+.loading-text-words:nth-child(7) { animation: pulse-text 1.5s 1.2s infinite ease-in-out alternate; }
+
+@keyframes pulse-text {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0.3;
+    transform: scale(0.95);
+  }
+}
+
+/* Loader glow effect */
+.loader-glow {
+  filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.5));
+}
+
+/* Loader image blend mode */
+.loader-blend {
+  mix-blend-mode: screen;
+  background-blend-mode: screen;
 }
