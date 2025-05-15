@@ -13,6 +13,8 @@ export default function GameBananaModModal({ mod, onClose }) {
   const [modDetails, setModDetails] = useState(null);
   const [detailsContext, setDetailsContext] = useState('info'); // 'info' or 'files'
   const [isLoadingDetails, setIsLoadingDetails] = useState(false);
+  const [installState, setInstallState] = useState(null); // null, 'installing', 'success', 'error'
+  const [installMessage, setInstallMessage] = useState('');
   const { installFromGamebanana } = useModStore();
 
   useEffect(() => {
@@ -29,8 +31,15 @@ export default function GameBananaModModal({ mod, onClose }) {
       }
     };
 
+    setInstallState(null);
+    setInstallMessage('');
     fetchModDetails();
   }, [mod._idRow]);
+
+  const handleCloseFeedback = () => {
+    setInstallState(null);
+    setInstallMessage('');
+  };
 
   const handleOpenMod = () => {
     window.open(mod._sProfileUrl, '_blank');
@@ -51,10 +60,21 @@ export default function GameBananaModModal({ mod, onClose }) {
   const handleInstallFile = async (fileId) => {
     if (!modDetails) return;
     
-    await installFromGamebanana({
-      modData: modDetails,
-      selectedFiles: [Number(fileId)]
-    });
+    setInstallState('installing');
+    setInstallMessage('Downloading and installing mod... This may take a few minutes.');
+    
+    try {
+      await installFromGamebanana({
+        modData: modDetails,
+        selectedFiles: [Number(fileId)]
+      });
+      setInstallState('success');
+      setInstallMessage('Mod installed successfully! You can now close this window.');
+    } catch (error) {
+      console.error('Installation error:', error);
+      setInstallState('error');
+      setInstallMessage(error.message || 'Failed to install mod. Please try again.');
+    }
   };
 
   const formatDate = (timestamp) => {
@@ -84,6 +104,47 @@ export default function GameBananaModModal({ mod, onClose }) {
       >
         <IoClose className="w-6 h-6" />
       </button>
+
+      {/* Installation Feedback Overlay */}
+      {installState && (
+        <div className="absolute inset-0 bg-black/80 backdrop-blur-sm z-10 flex items-center justify-center">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full mx-4">
+            <div className="flex flex-col items-center text-center">
+              {installState === 'installing' && (
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mb-4"></div>
+              )}
+              {installState === 'success' && (
+                <div className="w-12 h-12 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center mb-4">
+                  <svg className="w-6 h-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                  </svg>
+                </div>
+              )}
+              {installState === 'error' && (
+                <div className="w-12 h-12 bg-red-100 dark:bg-red-900 rounded-full flex items-center justify-center mb-4">
+                  <svg className="w-6 h-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
+                  </svg>
+                </div>
+              )}
+              <p className="text-lg font-medium mb-2">
+                {installState === 'installing' && 'Installing Mod...'}
+                {installState === 'success' && 'Installation Complete!'}
+                {installState === 'error' && 'Installation Failed'}
+              </p>
+              <p className="text-gray-600 dark:text-gray-400 mb-6">{installMessage}</p>
+              {(installState === 'success' || installState === 'error') && (
+                <button
+                  onClick={handleCloseFeedback}
+                  className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                >
+                  Close
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Modal Content */}
       <div 
