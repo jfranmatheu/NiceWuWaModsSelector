@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import Image from 'next/image';
+import ImageDisplay from './ImageDisplay';
 import { FaHeart, FaEye } from 'react-icons/fa';
 import { IoOpenOutline } from 'react-icons/io5';
 
@@ -31,11 +31,12 @@ export default function GameBananaModCard({ mod, onSelect }) {
     >
       {/* Mod Image */}
       <div className="relative aspect-video overflow-clip">
-        <Image
-          src={imageUrl}
+        <ImageDisplay
+          filePath={imageUrl}
           alt={mainImage._sCaption}
           fill
           className={`object-cover ${isWarned ? 'blur-md' : ''}`}
+          deferredEffect={true}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
         
@@ -72,11 +73,12 @@ export default function GameBananaModCard({ mod, onSelect }) {
         {/* Author */}
         <div className="flex items-center gap-2 mb-3">
           <div className="relative w-6 h-6 rounded-full overflow-hidden">
-            <Image
-              src={mod._aSubmitter._sAvatarUrl}
+            <ImageDisplay
+              filePath={mod._aSubmitter._sAvatarUrl}
               alt={mod._aSubmitter._sName}
               fill
               className="object-cover"
+              deferredEffect={true}
             />
           </div>
           <button

@@ -41,6 +41,7 @@ export default function ModCard({ mod, isSelected, onSelect, uiSettings }) {
             filePath={previewImage}
             relative={false}
             alt={mod.name}
+            deferredEffect={true}
             fill
             className="object-cover"
             unoptimized

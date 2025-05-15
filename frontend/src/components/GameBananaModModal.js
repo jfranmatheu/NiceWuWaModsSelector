@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Image from 'next/image';
+import ImageDisplay from './ImageDisplay';
 import { IoClose } from 'react-icons/io5';
 import { FaHeart, FaEye, FaCalendarAlt, FaClock, FaDownload, FaInfoCircle, FaFileAlt } from 'react-icons/fa';
 import { IoOpenOutline } from 'react-icons/io5';
@@ -157,12 +157,13 @@ export default function GameBananaModModal({ mod, onClose }) {
           <div className="w-3/5 flex flex-col">
             {/* Main Image */}
             <div className="relative aspect-video">
-              <Image
-                src={imageUrl}
+              <ImageDisplay
+                filePath={imageUrl}
                 alt={currentImage._sCaption || 'Mod Image'}
                 fill
                 className="object-contain cursor-pointer aspect-video"
                 onClick={handleMainImageClick}
+                deferredEffect={true}
               />
               {/* Title Overlay */}
               <div className="absolute top-4 left-4 bg-black/50 backdrop-blur-sm rounded-lg px-4 py-2">
@@ -178,13 +179,14 @@ export default function GameBananaModModal({ mod, onClose }) {
                   className="relative w-16 h-16 flex-shrink-0 cursor-pointer"
                   onClick={() => handleImageClick(index)}
                 >
-                  <Image
-                    src={`${image._sBaseUrl}/${image._sFile}`}
+                  <ImageDisplay
+                    filePath={`${image._sBaseUrl}/${image._sFile}`}
                     alt={image._sCaption || 'Mod Image'}
                     fill
                     className={`object-cover rounded ${
                       currentImageIndex === index ? 'ring-2 ring-blue-500' : ''
                     }`}
+                    deferredEffect={true}
                   />
                 </div>
               ))}
@@ -200,11 +202,12 @@ export default function GameBananaModModal({ mod, onClose }) {
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
                     <div className="relative w-8 h-8 rounded-full overflow-hidden">
-                      <Image
-                        src={mod._aSubmitter._sAvatarUrl}
+                      <ImageDisplay
+                        filePath={mod._aSubmitter._sAvatarUrl}
                         alt={mod._aSubmitter._sName}
                         fill
                         className="object-cover"
+                        deferredEffect={true}
                       />
                     </div>
                     <button
@@ -351,11 +354,12 @@ export default function GameBananaModModal({ mod, onClose }) {
           onClick={() => setIsImagePreviewOpen(false)}
         >
           <div className="relative w-full h-full">
-            <Image
-              src={imageUrl}
+            <ImageDisplay
+              filePath={imageUrl}
               alt={currentImage._sCaption}
               fill
               className="object-contain"
+              deferredEffect={true}
             />
             <button
               onClick={() => setIsImagePreviewOpen(false)}
