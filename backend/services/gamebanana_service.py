@@ -48,7 +48,7 @@ class GameBananaService:
             mod_dir.mkdir(parents=True, exist_ok=True)
 
             # Download and install selected files
-            installed_files = []
+            installed_versions = []
             for file_id in selected_files:
                 file_data = next((f for f in mod_data['_aFiles'] if f['_idRow'] == file_id), None)
                 if not file_data:
@@ -61,31 +61,45 @@ class GameBananaService:
                 # Extract file
                 if FileUtils.is_valid_archive(download_path):
                     FileUtils.extract_archive(download_path, mod_dir)
-                    installed_files.append(file_data['_sFile'])
+                    installed_versions.append({
+                        "id": file_data['_idRow'],
+                        "date": file_data['_tsDateAdded'],
+                        "name": file_data['_sFile'],
+                        "url": file_data['_sDownloadUrl'],
+                        "description": file_data['_sDescription'],
+                        "size": file_data['_nFilesize']
+                    })
 
                 # Clean up downloaded file
                 download_path.unlink()
 
-            # Create metadata.json
-            preview_image = None
+            # Process images from GameBanana
+            images = []
             if mod_data['_aPreviewMedia'] and mod_data['_aPreviewMedia']['_aImages']:
-                first_image = mod_data['_aPreviewMedia']['_aImages'][0]
-                preview_image = f"{first_image['_sBaseUrl']}/{first_image['_sFile530'] or first_image['_sFile']}"
+                for img in mod_data['_aPreviewMedia']['_aImages']:
+                    images.append({
+                        "local": False,
+                        "filename": img['_sFile'],
+                        "filename_100": img['_sFile100'],
+                        "caption": img['_sCaption']
+                    })
 
+            # Create metadata.json
             metadata = {
                 "id": str(uuid.uuid4()),
                 "name": mod_name,
-                "filename": mod_name,
                 "category": category,
                 "character": character if category == "Characters" else None,
-                "wuwa_version": mod_data.get('_sVersion', '1.0'),
+                "images": images,
+                "created_at": mod_data['_tsDateAdded'],
+                "updated_at": mod_data['_tsDateModified'],
                 "enabled": True,
-                "created_at": datetime.now().isoformat(),
-                "updated_at": datetime.now().isoformat(),
-                "preview_image": preview_image,
-                "source_url": mod_data['_sProfileUrl'],
-                "author": mod_data['_aSubmitter']['_sName'],
-                "installed_files": installed_files
+                "installed_versions": installed_versions,
+                "gamebanana": {
+                    "id": mod_data['_idRow'],
+                    "page_url": mod_data['_sProfileUrl'],
+                    "author_id": mod_data['_aSubmitter']['_idRow']
+                }
             }
 
             # Save metadata
@@ -94,7 +108,7 @@ class GameBananaService:
 
             # Reload mods
             from .mod_service import ModService
-            ModService.get_instance()._init_mods_file()
+            ModService.get().add_mod_metadata(metadata)
 
             return metadata
 

@@ -92,10 +92,11 @@ async def read_root():
 async def get_preview(category: str, character: str, preview_path: str):
     """Get a mod preview image"""
     try:
+        global app_service
         # Normalize the path to use the correct directory separator
         preview_path = preview_path.replace('/', os.sep).replace('\\', os.sep)
         # Construct the full path to the preview image
-        preview_file = Path(get_mods_dir()) / category / character / preview_path
+        preview_file = Path(app_service.mods_dir) / category / character / preview_path
         
         print("get_preview: ", str(preview_file))
 

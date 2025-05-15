@@ -171,6 +171,14 @@ class ModService:
 
             self.mods_metadata = all_mods_metadata
 
+    def add_mod_metadata(self, metadata: dict):
+        """Add a new mod metadata to the mods.json file"""
+        self.mods_metadata_id[metadata["id"]] = metadata
+        if metadata["category"] == "Characters":
+            self.mods_metadata[metadata["category"]][metadata["character"]].append(metadata)
+        else:
+            self.mods_metadata[metadata["category"]].append(metadata)
+
     async def get_mods(self, category: Optional[ModCategory] = None, character: Optional[str] = None) -> List[Mod]:
         """Get all mods, optionally filtered by category and/or character"""
         print(f"Getting mods for category: {category}, character: {character}")
@@ -278,10 +286,13 @@ class ModService:
                 raise HTTPException(status_code=404, detail="Mod not found")
             
             # Delete files
-            mod_path = get_mods_dir() / mod['filename']
+            mod_path = AppService.get().mods_dir / mod['category']
+            if mod['character']:
+                mod_path = mod_path / mod['character']
+            mod_path = mod_path / mod['name']
             if mod_path.exists():
                 mod_path.unlink()
-            
+
             if mod['preview_image']:
                 preview_path = Path(mod['preview_image'])
                 if preview_path.exists():
@@ -311,9 +322,9 @@ class ModService:
             mod['updated_at'] = int(datetime.now().timestamp())
             
             if mod['character']:
-                mod_dirpath = get_mods_dir() / mod['category'] / mod['character']
+                mod_dirpath = AppService.get().mods_dir / mod['category'] / mod['character']
             else:
-                mod_dirpath = get_mods_dir() / mod['category']
+                mod_dirpath = AppService.get().mods_dir / mod['category']
 
             if not mod_dirpath.exists():
                 print(f"Mod directory not found: {mod_dirpath}")
