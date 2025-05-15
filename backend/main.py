@@ -14,6 +14,7 @@ from models import Mod, ModCategory, GameBananaInstallRequest, Character, Charac
 from services.mod_service import ModService
 from services.gamebanana_service import GameBananaService
 from services.app_service import AppService
+from services.game_detection_service import GameDetectionService
 from services.character_list import get_characters_list
 from services.categories import get_categories, get_character_categories, mount_character_subcategories
 
@@ -21,6 +22,7 @@ from services.categories import get_categories, get_character_categories, mount_
 app_service = None
 mod_service = None
 gamebanana_service = None
+game_detection_service = None
 
 class ModsDirRequest(BaseModel):
     mods_dir: str
@@ -31,10 +33,11 @@ async def lifespan(app: FastAPI):
     # Startup
     await get_characters_list()
     await mount_character_subcategories()
-    global app_service, mod_service, gamebanana_service
+    global app_service, mod_service, gamebanana_service, game_detection_service
     app_service = AppService.get()
     mod_service = ModService.get()
     gamebanana_service = GameBananaService.get()
+    game_detection_service = GameDetectionService.get()
     yield
     # Shutdown
     pass
@@ -217,6 +220,26 @@ async def get_characters():
     """Get character data from cache or fetch if not available"""
     return await get_characters_list()
 
+@app.get("/api/game/status")
+async def get_game_status():
+    """Get the current status of the game window"""
+    service = GameDetectionService.get()
+    window_rect = service.get_game_window_rect()
+    return {
+        "is_running": service.is_game_running(),
+        "is_active": service.is_game_window_active(),
+        "window_rect": window_rect if window_rect else None
+    }
+
+@app.post("/api/game/detect-screen")
+async def detect_screen(template_path: str):
+    """Detect if a specific screen is visible in the game"""
+    if not game_detection_service.is_game_running():
+        raise HTTPException(status_code=400, detail="Game is not running")
+    
+    is_detected = game_detection_service.detect_screen(template_path)
+    return {"detected": is_detected}
+
 def start_server():
     """Start the FastAPI server"""
     import uvicorn
@@ -229,4 +252,4 @@ if __name__ == "__main__":
     
     # Create and start the window
     create_window()
-    webview.start(debug=True)
+    webview.start(debug=True, gui='edgehtml')

@@ -8,3 +8,8 @@ httpx
 Pillow
 python-multipart
 appdirs
+pywin32
+opencv-python
+numpy
+pyautogui
+psutil

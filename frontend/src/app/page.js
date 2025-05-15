@@ -6,9 +6,10 @@ import CharacterSidebar from '@/components/CharacterSidebar';
 import ModGrid from '@/components/ModGrid';
 import AddModButton from '@/components/AddModButton';
 import Settings from '@/components/Settings';
-import { FaDownload, FaGamepad } from 'react-icons/fa';
+import { FaDownload, FaGamepad, FaCircle } from 'react-icons/fa';
 import useSettingsStore from '@/store/settingsStore';
 import TacetMarkLoader from '@/components/TacetMarkLoader';
+import useGameDetection from '@/hooks/useGameDetection';
 
 export default function Home() {
   const [selectedCategory, setSelectedCategory] = useState("Characters");
@@ -16,7 +17,7 @@ export default function Home() {
   const [showSettings, setShowSettings] = useState(false);
   const [context, setContext] = useState('installed');
   const {settings, loadSettings, isLoading} = useSettingsStore();
-  const [isLoadingFake, setIsLoadingFake] = useState(true);
+  const { isGameRunning, isGameActive } = useGameDetection(null, 2000);
 
   useEffect(() => {
     // Add some delay to the loading screen
@@ -52,7 +53,7 @@ export default function Home() {
       )}
       
       <div className="flex-1 flex flex-col overflow-hidden">
-        <div className="pywebview-drag-region flex-none p-2 pb-0 flex items-center bg-white dark:bg-gray-800 shadow">
+        <div className="pywebview-drag-region flex-none p-2 pb-0 flex items-center justify-between bg-white dark:bg-gray-800 shadow">
           <div className="flex items-center gap-1">
             <button
               onClick={() => onContextChange('installed')}
@@ -76,6 +77,18 @@ export default function Home() {
               <FaGamepad className="w-4 h-4" />
               <span className="text-sm font-medium">GameBanana</span>
             </button>
+          </div>
+          
+          {/* Game State Indicator */}
+          <div className="flex items-center gap-2 text-sm">
+            <div className="flex items-center gap-1">
+              <FaCircle className={`w-2 h-2 ${isGameRunning ? 'text-green-500' : 'text-red-500'}`} />
+              <span className="text-gray-600 dark:text-gray-400">Game</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <FaCircle className={`w-2 h-2 ${isGameActive ? 'text-green-500' : 'text-yellow-500'}`} />
+              <span className="text-gray-600 dark:text-gray-400">Active</span>
+            </div>
           </div>
         </div>
 
