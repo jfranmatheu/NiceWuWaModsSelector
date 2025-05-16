@@ -108,25 +108,6 @@ def create_window():
 async def read_root():
     return {"message": "Welcome to NiceWuWaModsSelector API"}
 
-@app.get("/api/preview/{category}/{character}/{preview_path:path}")
-async def get_preview(category: str, character: str, preview_path: str):
-    """Get a mod preview image"""
-    try:
-        global app_service
-        # Normalize the path to use the correct directory separator
-        preview_path = preview_path.replace('/', os.sep).replace('\\', os.sep)
-        # Construct the full path to the preview image
-        preview_file = Path(app_service.mods_dir) / category / character / preview_path
-        
-        print("get_preview: ", str(preview_file))
-
-        if not preview_file.exists():
-            raise HTTPException(status_code=404, detail=f"Preview image not found: {preview_file}")
-            
-        return FileResponse(preview_file)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
 # Mod Management Endpoints
 @app.get("/api/mods")
 async def get_mods(category: Optional[ModCategory] = None, character: Optional[str] = None):
